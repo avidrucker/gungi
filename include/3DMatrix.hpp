@@ -14,6 +14,16 @@ namespace Gungi
             , _height (height)
             , _matrix (new T[width * length * height])
             {}
+
+            Heap3DMatrix(const size_t& width, const size_t& length, const size_t& height, const T& initValue)
+            : _width  (width)
+            , _length (length)
+            , _height (height)
+            , _matrix (new T[width * length * height])
+            {
+                for (size_t i = 0; i < getVolume(); ++i)
+                    _matrix[i] = initValue;
+            }
             
             ~Heap3DMatrix()
             {
@@ -51,12 +61,12 @@ namespace Gungi
                 return _matrix[i];
             }
 
-            T& operator [] (const 3D_Indices& idx)
+            T& operator [] (const XYZ_Indices& idx)
             {
                 return _matrix[coorToIndex(idx,_width,_length)];
             }
 
-            const T& operator [] (const 3D_Indices& idx) const
+            const T& operator [] (const XYZ_Indices& idx) const
             {
                 return _matrix[coorToIndex(idx,_width,_length)];
             }
@@ -71,7 +81,7 @@ namespace Gungi
                 return _matrix[coorToIndex(x,y,z,_width,_length)];
             }
             
-        private:
+        protected:
             size_t _width, _length, _height;
             T* _matrix;
             
@@ -117,27 +127,27 @@ namespace Gungi
                 return _matrix[i];
             }
 
-            T& operator [] (const 3D_Indices& idx)
+            T& operator [] (const XYZ_Indices& idx)
             {
-                return _matrix[coorToIndex(idx,_width,_length)];
+                return _matrix[coorToIndex(idx, width, length)];
             }
 
-            const T& operator [] (const 3D_Indices& idx) const
+            const T& operator [] (const XYZ_Indices& idx) const
             {
-                return _matrix[coorToIndex(idx,_width,_length)];
+                return _matrix[coorToIndex(idx, width, length)];
             }
             
             T& operator () (const size_t& x, const size_t& y, const size_t& z)
             {
-                return _matrix[coorToIndex(x,y,z,_width,_length)];
+                return _matrix[coorToIndex(x, y, z, width, length)];
             }
 
             const T& operator () (const size_t& x, const size_t& y, const size_t& z) const
             {
-                return _matrix[coorToIndex(x,y,z,_width,_length)];
+                return _matrix[coorToIndex(x, y, z, width, length)];
             }
 
-        private:
+        protected:
             T _matrix[width * length * height];
     };
 }

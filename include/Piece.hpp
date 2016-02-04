@@ -20,8 +20,8 @@ namespace Gungi
             strcpy(Z,z);
         }
 
-        char[2] X;
-        char[2] Y;
-        char[2] Z;
+        char X[2];
+        char Y[2];
+        char Z[2];
     };
 }
