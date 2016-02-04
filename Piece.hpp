@@ -24,6 +24,4 @@ namespace Gungi
         char[2] Y;
         char[2] Z;
     };
-
-
 }

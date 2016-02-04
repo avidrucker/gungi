@@ -8,8 +8,6 @@ namespace Gungi
     class Heap3DMatrix 
     {
         public:
-
-        public:
             Heap3DMatrix(const size_t& width, const size_t& length, const size_t& height)
             : _width  (width)
             , _length (length)
@@ -47,12 +45,28 @@ namespace Gungi
                 return _matrix[i];
             }
 
-            T& operator [] (const indices& idx)
+
+            const T& operator [] (const size_t& i) const
             {
-                return _matrix[coorToIndex(x,y,z,_width,_length)];
+                return _matrix[i];
+            }
+
+            T& operator [] (const 3D_Indices& idx)
+            {
+                return _matrix[coorToIndex(idx,_width,_length)];
+            }
+
+            const T& operator [] (const 3D_Indices& idx) const
+            {
+                return _matrix[coorToIndex(idx,_width,_length)];
             }
             
             T& operator () (const size_t& x, const size_t& y, const size_t& z)
+            {
+                return _matrix[coorToIndex(x,y,z,_width,_length)];
+            }
+
+            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const
             {
                 return _matrix[coorToIndex(x,y,z,_width,_length)];
             }
@@ -98,14 +112,29 @@ namespace Gungi
                 return _matrix[i];
             }
 
-            T& operator [] (const indices& idx)
+            const T& operator [] (const size_t& i) const
             {
-                return _matrix[x + y * width + z * width * height];   
+                return _matrix[i];
+            }
+
+            T& operator [] (const 3D_Indices& idx)
+            {
+                return _matrix[coorToIndex(idx,_width,_length)];
+            }
+
+            const T& operator [] (const 3D_Indices& idx) const
+            {
+                return _matrix[coorToIndex(idx,_width,_length)];
             }
             
             T& operator () (const size_t& x, const size_t& y, const size_t& z)
             {
-                return _matrix[idx.x + idx.y * width + idx.z * width * height];   
+                return _matrix[coorToIndex(x,y,z,_width,_length)];
+            }
+
+            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const
+            {
+                return _matrix[coorToIndex(x,y,z,_width,_length)];
             }
 
         private:
