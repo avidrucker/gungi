@@ -20,11 +20,10 @@ namespace Gungi
             , _length (length)
             , _matrix (new T[width * length])
             {
-                for (size_t i = 0; i < getArea(); ++i)
+                for (size_t i = 0; i < getSize(); ++i)
                     _matrix[i] = initValue;
             }
 
-            
             ~Heap2DMatrix()
             {
                 delete [] _matrix;
@@ -40,7 +39,7 @@ namespace Gungi
                 return _length;
             }
 
-            size_t getArea() const
+            size_t getSize() const
             {
                 return _width * _length;
             }
@@ -101,7 +100,7 @@ namespace Gungi
                 return length;
             }
 
-            size_t area() const
+            size_t getSize() const
             {
                 return width * length;
             }
