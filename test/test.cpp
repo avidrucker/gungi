@@ -3,11 +3,12 @@
 #include "Async2DMatrix.hpp"
 #include "Async3DMatrix.hpp"
 #include "Piece.hpp"
+#include "MatrixManip.hpp"
 
 using namespace Gungi;
 
 
-int main(int argc, const char** argv)
+int main(int argc, char** argv)
 {
     Heap2DMatrix       <char>          h2(5, 5, 'a');
     Heap3DMatrix       <char>          h3(5, 5, 'a');

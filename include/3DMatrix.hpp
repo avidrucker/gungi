@@ -21,7 +21,7 @@ namespace Gungi
             , _height (height)
             , _matrix (new T[width * length * height])
             {
-                for (size_t i = 0; i < getVolume(); ++i)
+                for (size_t i = 0; i < getSize(); ++i)
                     _matrix[i] = initValue;
             }
             
@@ -45,7 +45,7 @@ namespace Gungi
                 return _height;
             }
             
-            size_t getVolume() const
+            size_t getSize() const
             {
                 return _width * _length * _height;
             }
@@ -112,7 +112,7 @@ namespace Gungi
                 return height;
             }
 
-            size_t volume() const
+            size_t getSize() const
             {
                 return width * length * height;
             }
