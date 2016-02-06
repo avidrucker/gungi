@@ -27,7 +27,11 @@ namespace Gungi
             
             ~Heap3DMatrix()
             {
-                delete [] _matrix;
+                if (_matrix != nullptr)
+                {
+                    delete [] _matrix;
+                    _matrix = nullptr;
+                }
             }
 
             size_t getWidth() const

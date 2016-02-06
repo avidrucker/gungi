@@ -38,7 +38,6 @@ namespace Gungi
                 std::lock_guard<std::mutex> lock(_mutex);
                 return Super::_matrix[coorToIndex(x, y, Super::_length)];
             }
-
         private:
             std::mutex _mutex;
     };
@@ -71,7 +70,6 @@ namespace Gungi
                 std::lock_guard<std::mutex> lock(_mutex);
                 return Super::_matrix[coorToIndex(x, y, length)];
             }
-
         private:
             std::mutex _mutex;
     };

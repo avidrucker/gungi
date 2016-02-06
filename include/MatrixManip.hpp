@@ -37,7 +37,10 @@ namespace Gungi
         for ( decltype(len) i = 0; i < len; ++i)
             matrix[i] = state;
     }
-
+    
+    /*
+    * Assuming 0,0 is top left corner
+    */
     template <class Matrix, class MatrixType, class Indices>
     void shiftStateUp_N(Matrix& matrix, Indices idx, const size_t& n, const MatrixType& state)
     {

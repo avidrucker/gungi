@@ -18,11 +18,11 @@ int main(int argc, char** argv)
     AsyncHeap3DMatrix  <char>          ah3(5, 5, 5, 'a');
     AsyncStack2DMatrix <char, 5, 5>    as2('a');
     AsyncStack3DMatrix <char, 5, 5, 5> as3('a');
-    
-
-    std::cout << "Move: " << sizeof (Move) << std::endl
-        << "XY_Indices: " << sizeof (XY_Indices) << std::endl
-        << "XYZ_Indices: " << sizeof (XYZ_Indices) << std::endl;
-
     return 0;
 }
+
+/**
+ * Notes:
+ * Use Async2DMatrix<bool> to evaluate possible moves for all pieces on your side
+ *
+ */
