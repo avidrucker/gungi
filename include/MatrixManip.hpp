@@ -120,7 +120,7 @@ namespace Gungi
     }
 
     template <class Matrix, class Indices, class Generator>
-    decltype(auto) generate(const Matrix& matrix, const Indices& idx, Generator& genFunc);
+    decltype(auto) generate(const Matrix& matrix, const Indices& idx, Generator& genFunc)
     {
         return genFunc(matrix[idx]); 
     }

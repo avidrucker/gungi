@@ -2,7 +2,6 @@
 
 #include "Async2DMatrix.hpp"
 #include "Async3DMatrix.hpp"
-#include "Piece.hpp"
 #include "MatrixManip.hpp"
 
 using namespace Gungi;
