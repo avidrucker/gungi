@@ -122,19 +122,3 @@ namespace Gungi
         }
     }
 }
-
-
-    enum class Tail : uint8_t
-    { None, Pistol, Pike, Jounin, Lance, DragonKing,
-        Phoenix, Arrow, Gold, Silver, Bronze };
-
-    constexpr uint8_t DRAGON_KING_RANK = 12;
-    constexpr uint8_t LANCE_RANK = 10;
-    constexpr uint8_t PHOENIX_RANK = 10;
-    constexpr uint8_t JOUNIN_RANK = 8;
-    constexpr uint8_t ARROW_RANK = 6;
-    constexpr uint8_t PIKE_RANK = 6;
-    constexpr uint8_t GOLD_RANK = 6;
-    constexpr uint8_t PISTOL_RANK = 4;
-    constexpr uint8_t SILVER_RANK = 4;
-    constexpr uint8_t BRONZE_RANK = 2;
