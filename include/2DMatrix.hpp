@@ -25,6 +25,7 @@ namespace Gungi
             }
 
             ~Heap2DMatrix()
+            {
             
                 if (_matrix != nullptr)
                 {
