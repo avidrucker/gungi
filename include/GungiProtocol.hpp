@@ -47,6 +47,11 @@ namespace Gungi
     
     struct Piece
     {
+        Head head;
+        Tail tail;
+        
+        bool nullPiece;
+
         Piece()
         : head      (Head::None)
         , tail      (Tail::None) 
@@ -58,10 +63,8 @@ namespace Gungi
         , tail      (t)
         , nullPiece (false)
         {}
+                
 
-        Head head;
-        Tail tail;
-        bool nullPiece;
     };
     
 
@@ -121,4 +124,7 @@ namespace Gungi
 
         }
     }
+
+    
+
 }
