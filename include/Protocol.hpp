@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <memory>
 #include <set>
 
 namespace Gungi
@@ -9,8 +9,9 @@ namespace Gungi
     constexpr uint8_t NUM_FRONT_PIECES = 10;
     constexpr uint8_t NUM_BACK_PIECES = 10; 
 
-    using Move = std::vector<uint8_t>
-    using MoveSet = std::set<std::vector<uint8_t>>;
+    using MoveSet = std::set<Move>;
+
+    constexpr uint8_t INFINITE_RANGE = ~0;
 
     namespace DIRECTIONS
     {
@@ -25,7 +26,46 @@ namespace Gungi
         constexpr uint8_t W = 7;
     }
 
-    enum class Tier : uint8_t { One, Two, Three };
+    enum class Direction : uint8_t 
+    { NW, N, NE, E, SE, S, SW, W };
+
+    /**
+     * Check this
+     */
+    class Move
+    {
+        using MovePtr = std::shared_ptr<Move>;
+
+        public:
+            Move(const uint8_t& steps, const Direction& direction, MovePtr next = nullptr)
+            : _steps     (steps)
+            , _direction (direction)
+            , _next      (next)
+            {}
+
+            const uint8_t& getSteps() const
+            {
+                return _steps;
+            }
+
+            const Direction& getDirection() const
+            {
+                return _direction;
+            }
+            
+            MovePtr getNext() const
+            {
+                return _next;
+            }
+        
+        private:
+            const uint8_t _steps;
+            const Direction _direction;
+            MovePtr _next;
+    };
+
+    enum class Tier : uint8_t 
+    { One, Two, Three };
 
     /**
      * Heads
@@ -146,36 +186,46 @@ namespace Gungi
     
     void genCommanderMoveSet(MoveSet& moveset)
     {
-        moveset.emplace(DIRECTIONS::COUNT, 1);
+        moveset.emplace(1, Direction::NW);
+        moveset.emplace(1, Direction::N);
+        moveset.emplace(1, Direction::NE);
+        moveset.emplace(1, Direction::E);
+        moveset.emplace(1, Direction::SE);
+        moveset.emplace(1, Direction::S);
+        moveset.emplace(1, Direction::SW);
+        moveset.emplace(1, Direction::W);
     }
 
     void genCaptainMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-            move[DIRECTIONS::NW] = 1;
-            move[DIRECTIONS::N]  = 1;
-            move[DIRECTIONS::NE] = 1;
-            move[DIRECTIONS::SE] = 1;
-            move[DIRECTIONS::SW] = 1;
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
         }
         else if (tier == Tier::Two)
         {
-            move[DIRECTIONS::NW] = 1;
-            move[DIRECTIONS::N]  = 1;
-            move[DIRECTIONS::NE] = 1;
-            move[DIRECTIONS::SE] = 1;
-            move[DIRECTIONS::S]  = 1;
-            move[DIRECTIONS::SW] = 1;
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(1, Direction::SW);
         }
         else
         {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NW);
         }
-
-        moveset.insert(move);
     }
 
     void genSamuraiMoveSet(MoveSet& moveset, const Tier& tier)
@@ -184,15 +234,20 @@ namespace Gungi
 
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            move[DIRECTIONS::NW] = 1;
+            move[DIRECTIONS::N]  = 1;
+            move[DIRECTIONS::NE] = 1;
+            move[DIRECTIONS::E] = 1;
+            move[DIRECTIONS::W] = 1;
         }
         else
         {
-
+            move[DIRECTIONS::NW] = 1;
+            move[DIRECTIONS::N]  = 2;
+            move[DIRECTIONS::NE] = 1;
+            move[DIRECTIONS::E] = 1;
+            move[DIRECTIONS::S] = 2;
+            move[DIRECTIONS::W] = 1;
         }
 
         moveset.insert(move);
@@ -204,11 +259,7 @@ namespace Gungi
 
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            move[DIRECTIONS::] = 1;     
         }
         else
         {

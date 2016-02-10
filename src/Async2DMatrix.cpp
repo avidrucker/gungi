@@ -2,7 +2,6 @@
 
 namespace Gungi
 {
-
     template <class T>
     AsyncHeap2DMatrix<T>::AsyncHeap2DMatrix(const size_t& width, const size_t& length)
     : Heap2DMatrix<T>(width,length)

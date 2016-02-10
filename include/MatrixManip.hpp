@@ -37,8 +37,8 @@ namespace Gungi
     template <class Matrix, class MatrixType>
     void setCompleteState(Matrix& matrix, const MatrixType& state)
     {
-        auto len = matrix.volume();
-        for ( decltype(len) i = 0; i < len; ++i)
+        auto len = matrix.getSize();
+        for (decltype(len) i = 0; i < len; ++i)
             matrix[i] = state;
     }
 
