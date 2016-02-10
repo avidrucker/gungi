@@ -1,10 +1,31 @@
 #pragma once
 
+#include <vector>
+#include <set>
+
 namespace Gungi
 {
     constexpr uint8_t BOARD_SIZE = 9;
     constexpr uint8_t NUM_FRONT_PIECES = 10;
     constexpr uint8_t NUM_BACK_PIECES = 10; 
+
+    using Move = std::vector<uint8_t>
+    using MoveSet = std::set<std::vector<uint8_t>>;
+
+    namespace DIRECTIONS
+    {
+        constexpr uint8_t COUNT = 8;
+        constexpr uint8_t NW = 0;
+        constexpr uint8_t N = 1;
+        constexpr uint8_t NE = 2;
+        constexpr uint8_t E = 3;
+        constexpr uint8_t SE = 4;
+        constexpr uint8_t S = 5;
+        constexpr uint8_t SW 6;
+        constexpr uint8_t W = 7;
+    }
+
+    enum class Tier : uint8_t { One, Two, Three };
 
     /**
      * Heads
@@ -63,13 +84,10 @@ namespace Gungi
         , tail      (t)
         , nullPiece (false)
         {}
-                
-
     };
     
-
     uint8_t getHeadValue(const Piece& piece)
-    j
+    {
         switch (piece.head)
         {
             case Head::Captain:
@@ -126,5 +144,462 @@ namespace Gungi
     }
 
     
+    void genCommanderMoveSet(MoveSet& moveset)
+    {
+        moveset.emplace(DIRECTIONS::COUNT, 1);
+    }
+
+    void genCaptainMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+            move[DIRECTIONS::NW] = 1;
+            move[DIRECTIONS::N]  = 1;
+            move[DIRECTIONS::NE] = 1;
+            move[DIRECTIONS::SE] = 1;
+            move[DIRECTIONS::SW] = 1;
+        }
+        else if (tier == Tier::Two)
+        {
+            move[DIRECTIONS::NW] = 1;
+            move[DIRECTIONS::N]  = 1;
+            move[DIRECTIONS::NE] = 1;
+            move[DIRECTIONS::SE] = 1;
+            move[DIRECTIONS::S]  = 1;
+            move[DIRECTIONS::SW] = 1;
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genSamuraiMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genNinjaMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genCatapultMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genFortressMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genHiddenDragonMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genProdigyMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genArcherMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genSoldierMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genDragonKingMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genLanceMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genPhoenixMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genJouninMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genPikeMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genGoldMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genPistolMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genSilverMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    void genBronzeMoveSet(MoveSet& moveset, const Tier& tier)
+    {
+        Move move { DIRECTIONS::COUNT, 0 };
+
+        if (tier == Tier::One)
+        {
+
+        }
+        else if (tier == Tier::Two)
+        {
+
+        }
+        else
+        {
+
+        }
+
+        moveset.insert(move);
+    }
+
+    MoveSet genHeadMoveSet(const Piece& piece, const Tier& tier)
+    {
+        MoveSet moveset;
+        
+        switch (piece.head)
+        {
+            case Head::Commader:
+                genCommanderMoveSet(moveset);
+                break;
+            case Head::Captain:
+                genCaptainMoveSet(moveset, tier);
+                break;
+            case Head::Samurai:
+                genSamuraiMoveSet(moveset, tier);
+                break;
+            case Head::Ninja:
+                genNinjaMoveSet(moveset, tier);
+                break;
+            case Head::Catapult:
+                genCatapultMoveSet(moveset, tier);
+                break;
+            case Head::Fortress:
+                genFortressMoveSet(moveset, tier);
+                break;
+            case Head::HiddenDragon:
+                genHiddenDragonMoveSet(moveset, tier);
+                break;
+            case Head::Prodigy:
+                genProdigyMoveSet(moveset, tier);
+                break;
+            case Head::Archer:
+                genArcherMoveSet(moveset, tier);
+                break;
+            case Head::Soldier:
+                genSoldierMoveSet(moveset, tier);
+                break;
+            default:
+        }
+
+        return moveset;
+    }
+
+    MoveSet genTailMoveSet(const Piece& piece, const Tier& tier)
+    {
+        MoveSet moveset;
+        
+        switch (piece.tail)
+        {
+            case Tail::DragonKing:
+                genDragonKingMoveSet(moveset, tier);
+                break;
+            case Tail::Lance:
+                genLanceMoveSet(moveset, tier);
+                break;
+            case Tail::Phoenix:
+                genPhoenixMoveSet(moveset, tier);
+                break;
+            case Tail::Jounin:
+                genJouninMoveSet(moveset, tier);
+                break;
+            case Tail::Arrow:
+                genArrowMoveSet(moveset, tier);
+                break;
+            case Tail::Pike:
+                genPikeMoveSet(moveset, tier);
+                break;
+            case Tail::Gold:
+                genGoldMoveSet(moveset, tier);
+                break;
+            case Tail::Pistol:
+                genPistolMoveSet(moveset, tier);
+                break;
+            case Tail::Silver:
+                genSilverMoveSet(moveset, tier);
+                break;
+            case Tail::Bronze:
+                genBronzeMoveSet(moveset, tier);
+                break;
+            default:
+        }
+
+        return moveset;
+    }
 
 }
