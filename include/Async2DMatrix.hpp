@@ -13,31 +13,12 @@ namespace Gungi
         using Super = Heap2DMatrix<T>;
 
         public:
-            AsyncHeap2DMatrix(const size_t& width, const size_t& length)
-            : Heap2DMatrix<T>(width,length)
-            {}
-            
-            AsyncHeap2DMatrix(const size_t& width, const size_t& length, const T& initValue)
-            : Heap2DMatrix<T>(width,length, initValue)
-            {}
+            AsyncHeap2DMatrix(const size_t& width, const size_t& length);
+            AsyncHeap2DMatrix(const size_t& width, const size_t& length, const T& initValue);
+            T& operator [] (const size_t& i);
+            T& operator [] (const XY_Indices& idx);
+            T& operator () (const size_t& x, const size_t& y);
 
-            T& operator [] (const size_t& i)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[i];
-            }
-
-            T& operator [] (const XY_Indices& idx)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(idx, Super::_length)];
-            }
-
-            T& operator () (const size_t& x, const size_t& y)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(x, y, Super::_length)];
-            }
         private:
             std::mutex _mutex;
     };
@@ -49,28 +30,14 @@ namespace Gungi
         using Super = Stack2DMatrix<T, width, length>;
 
         public:
-            AsyncStack2DMatrix <T,width,length>(const T& initValue = T())
-            : Stack2DMatrix<T,width,length>(initValue)
-            {}
+            AsyncStack2DMatrix <T,width,length>(const T& initValue = T());
+            T& operator [] (const size_t& i);
+            T& operator [] (const XY_Indices& idx);
+            T& operator () (const size_t& x, const size_t& y);
 
-            T& operator [] (const size_t& i)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[i];
-            }
-
-            T& operator [] (const XY_Indices& idx)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(idx, length)];
-            }
-            
-            T& operator () (const size_t& x, const size_t& y)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(x, y, length)];
-            }
         private:
             std::mutex _mutex;
     };
 }
+
+#include "Async2DMatrix.cpp"

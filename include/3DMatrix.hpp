@@ -8,83 +8,20 @@ namespace Gungi
     class Heap3DMatrix 
     {
         public:
-            Heap3DMatrix(const size_t& width, const size_t& length, const size_t& height)
-            : _width  (width)
-            , _length (length)
-            , _height (height)
-            , _matrix (new T[width * length * height])
-            {}
+            Heap3DMatrix(const size_t& width, const size_t& length, const size_t& height);
+            Heap3DMatrix(const size_t& width, const size_t& length, const size_t& height, const T& initValue);
+            ~Heap3DMatrix();
+            size_t getWidth() const;
+            size_t getLength() const;
+            size_t getHeight() const;
+            size_t getSize() const;
+            T& operator [] (const size_t& i);
+            const T& operator [] (const size_t& i) const;
+            T& operator [] (const XYZ_Indices& idx);
+            const T& operator [] (const XYZ_Indices& idx) const;
+            T& operator () (const size_t& x, const size_t& y, const size_t& z);
+            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const;
 
-            Heap3DMatrix(const size_t& width, const size_t& length, const size_t& height, const T& initValue)
-            : _width  (width)
-            , _length (length)
-            , _height (height)
-            , _matrix (new T[width * length * height])
-            {
-                for (size_t i = 0; i < getSize(); ++i)
-                    _matrix[i] = initValue;
-            }
-            
-            ~Heap3DMatrix()
-            {
-                if (_matrix != nullptr)
-                {
-                    delete [] _matrix;
-                    _matrix = nullptr;
-                }
-            }
-
-            size_t getWidth() const
-            {
-                return _width;
-            }
-
-            size_t getLength() const
-            {
-                return _length;
-            }
-
-            size_t getHeight() const
-            {
-                return _height;
-            }
-            
-            size_t getSize() const
-            {
-                return _width * _length * _height;
-            }
-
-            T& operator [] (const size_t& i)
-            {
-                return _matrix[i];
-            }
-
-
-            const T& operator [] (const size_t& i) const
-            {
-                return _matrix[i];
-            }
-
-            T& operator [] (const XYZ_Indices& idx)
-            {
-                return _matrix[coorToIndex(idx,_width,_length)];
-            }
-
-            const T& operator [] (const XYZ_Indices& idx) const
-            {
-                return _matrix[coorToIndex(idx,_width,_length)];
-            }
-            
-            T& operator () (const size_t& x, const size_t& y, const size_t& z)
-            {
-                return _matrix[coorToIndex(x,y,z,_width,_length)];
-            }
-
-            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const
-            {
-                return _matrix[coorToIndex(x,y,z,_width,_length)];
-            }
-            
         protected:
             size_t _width, _length, _height;
             T* _matrix;
@@ -95,63 +32,21 @@ namespace Gungi
     class Stack3DMatrix
     {
         public:
-            Stack3DMatrix(const T& initValue = T())
-            {
-                for (size_t i = 0; i < (width * length * height); ++i)
-                    _matrix[i] = initValue;
-            }
-
-            size_t getWidth() const
-            {
-                return width;
-            }
-
-            size_t getLength() const
-            {
-                return length;
-            }
-
-            size_t getHeight() const
-            {
-                return height;
-            }
-
-            size_t getSize() const
-            {
-                return width * length * height;
-            }
-
-            T& operator [] (const size_t& i)
-            {
-                return _matrix[i];
-            }
-
-            const T& operator [] (const size_t& i) const
-            {
-                return _matrix[i];
-            }
-
-            T& operator [] (const XYZ_Indices& idx)
-            {
-                return _matrix[coorToIndex(idx, width, length)];
-            }
-
-            const T& operator [] (const XYZ_Indices& idx) const
-            {
-                return _matrix[coorToIndex(idx, width, length)];
-            }
-            
-            T& operator () (const size_t& x, const size_t& y, const size_t& z)
-            {
-                return _matrix[coorToIndex(x, y, z, width, length)];
-            }
-
-            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const
-            {
-                return _matrix[coorToIndex(x, y, z, width, length)];
-            }
+            Stack3DMatrix(const T& initValue = T());
+            size_t getWidth() const;
+            size_t getLength() const;
+            size_t getHeight() const;
+            size_t getSize() const;
+            T& operator [] (const size_t& i);
+            const T& operator [] (const size_t& i) const;
+            T& operator [] (const XYZ_Indices& idx);
+            const T& operator [] (const XYZ_Indices& idx) const;
+            T& operator () (const size_t& x, const size_t& y, const size_t& z);
+            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const;
 
         protected:
             T _matrix[width * length * height];
     };
 }
+
+#include "3DMatrix.cpp"

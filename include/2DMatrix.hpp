@@ -9,75 +9,18 @@ namespace Gungi
     class Heap2DMatrix 
     {
         public:
-            Heap2DMatrix(const size_t& width, const size_t& length)
-            : _width  (width)
-            , _length (length)
-            , _matrix (new T[width * length])
-            {}
-
-            Heap2DMatrix(const size_t& width, const size_t& length, const T& initValue)
-            : _width  (width)
-            , _length (length)
-            , _matrix (new T[width * length])
-            {
-                for (size_t i = 0; i < getSize(); ++i)
-                    _matrix[i] = initValue;
-            }
-
-            ~Heap2DMatrix()
-            {
-            
-                if (_matrix != nullptr)
-                {
-                    delete [] _matrix;
-                    _matrix = nullptr;
-                }
-            }
-
-            size_t getWidth() const
-            {
-                return _width;
-            }
-
-            size_t getLength() const
-            {
-                return _length;
-            }
-
-            size_t getSize() const
-            {
-                return _width * _length;
-            }
-            
-            T& operator [] (const size_t& i)
-            {
-                return _matrix[i];
-            }
-
-            const T& operator [] (const size_t& i) const
-            {
-                return _matrix[i];
-            }
-
-            T& operator [] (const XY_Indices& idx)
-            {
-                return _matrix[coorToIndex(idx, _length)];
-            }
-
-            const T& operator [] (const XY_Indices& idx) const
-            {
-                return _matrix[coorToIndex(idx , _length)];
-            }
-            
-            T& operator () (const size_t& x, const size_t& y)
-            {
-                return _matrix[coorToIndex(x, y, _length)];
-            }
-
-            const T& operator () (const size_t& x, const size_t& y) const
-            {
-                return _matrix[coorToIndex(x, y, _length)];
-            }
+            Heap2DMatrix(const size_t& width, const size_t& length);
+            Heap2DMatrix(const size_t& width, const size_t& length, const T& initValue);
+            ~Heap2DMatrix();
+            size_t getWidth() const;
+            size_t getLength() const;
+            size_t getSize() const;
+            T& operator [] (const size_t& i);
+            const T& operator [] (const size_t& i) const;
+            T& operator [] (const XY_Indices& idx);
+            const T& operator [] (const XY_Indices& idx) const;
+            T& operator () (const size_t& x, const size_t& y);
+            const T& operator () (const size_t& x, const size_t& y) const;
             
         protected:
             size_t _width, _length;
@@ -89,58 +32,21 @@ namespace Gungi
     class Stack2DMatrix
     {
         public:
-            Stack2DMatrix(const T& initValue = T())
-            {
-                for (size_t i = 0; i < (width * length); ++i)
-                    _matrix[i] = initValue;
-            }
+            Stack2DMatrix(const T& initValue = T());
+            size_t getWidth() const;
+            size_t getLength() const;
+            size_t getSize() const;
 
-            size_t getWidth() const
-            {
-                return width;
-            }
-
-            size_t getLength() const
-            {
-                return length;
-            }
-
-            size_t getSize() const
-            {
-                return width * length;
-            }
-
-            T& operator [] (const size_t& i)
-            {
-                return _matrix[i];
-            }
-
-            const T& operator [] (const size_t& i) const
-            {
-                return _matrix[i];
-            }
-
-            T& operator [] (const XY_Indices& idx)
-            {
-                return _matrix[coorToIndex(idx, length)];
-            }
-
-            const T& operator [] (const XY_Indices& idx) const
-            {
-                return _matrix[coorToIndex(idx,length)];
-            }
-            
-            T& operator () (const size_t& x, const size_t& y)
-            {
-                return _matrix[coorToIndex(x, y, length)];
-            }
-
-            const T& operator () (const size_t& x, const size_t& y) const
-            {
-                return _matrix[coorToIndex(x, y, length)];
-            }
+            T& operator [] (const size_t& i);
+            const T& operator [] (const size_t& i) const;
+            T& operator [] (const XY_Indices& idx);
+            const T& operator [] (const XY_Indices& idx) const;
+            T& operator () (const size_t& x, const size_t& y);
+            const T& operator () (const size_t& x, const size_t& y) const;
 
         protected:
             T _matrix[width * length];
     };
 }
+
+#include "2DMatrix.cpp"

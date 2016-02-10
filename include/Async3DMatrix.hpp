@@ -13,31 +13,11 @@ namespace Gungi
         using Super = Heap3DMatrix<T>;
 
         public:
-            AsyncHeap3DMatrix(const size_t& width, const size_t& length, const size_t& height)
-            : Heap3DMatrix<T>(width,length,height)
-            {}
-
-            AsyncHeap3DMatrix(const size_t& width, const size_t& length, const size_t& height, const T& initValue)
-            : Heap3DMatrix<T>(width,length,height, initValue)
-            {}
-            
-            T& operator [] (const size_t& i)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[i];
-            }
-
-            T& operator [] (const XYZ_Indices& idx)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(idx, Super::_width, Super::_length)];
-            }
-
-            T& operator () (const size_t& x, const size_t& y, const size_t& z)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::matrix[coorToIndex(x, y, z, Super::_width, Super::_length)];
-            }
+            AsyncHeap3DMatrix(const size_t& width, const size_t& length, const size_t& height);
+            AsyncHeap3DMatrix(const size_t& width, const size_t& length, const size_t& height, const T& initValue);
+            T& operator [] (const size_t& i);
+            T& operator [] (const XYZ_Indices& idx);
+            T& operator () (const size_t& x, const size_t& y, const size_t& z);
 
         private:
             std::mutex _mutex;
@@ -50,29 +30,14 @@ namespace Gungi
         using Super = Stack3DMatrix<T, width, length, height>;
 
         public:
-            AsyncStack3DMatrix(const T& initValue = T())
-            : Stack3DMatrix <T,width,length,height>(initValue)
-            {}
-
-            T& operator [] (const size_t& i)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[i];
-            }
-
-            T& operator [] (const XYZ_Indices& idx)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(idx, width, length)];
-            }
-
-            T& operator () (const size_t& x, const size_t& y, const size_t& z)
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                return Super::_matrix[coorToIndex(x, y, z, width, length)];
-            }
+            AsyncStack3DMatrix(const T& initValue = T());
+            T& operator [] (const size_t& i);
+            T& operator [] (const XYZ_Indices& idx);
+            T& operator () (const size_t& x, const size_t& y, const size_t& z);
 
         private:
             std::mutex _mutex;
     };
 }
+
+#include "Async3DMatrix.cpp"
