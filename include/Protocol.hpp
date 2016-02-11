@@ -29,21 +29,30 @@ namespace Gungi
     enum class Direction : uint8_t 
     { NW, N, NE, E, SE, S, SW, W };
 
-
-
     /**
      * Check this
      */
     class Move
     {
-        using MovePtr = std::shared_ptr<Move>;
-
         public:
-            Move(const uint8_t& steps, const Direction& direction, MovePtr next = nullptr)
+            Move(const uint8_t& steps, const Direction& direction)
             : _steps     (steps)
             , _direction (direction)
-            , _next      (next)
+            , _next      (nullptr)
             {}
+
+            Move(const uint8_t& steps, const Direction& direction, 
+                    const uint8_t& nextSteps, const uint8_t& nextDirection)
+            : _steps     (steps)
+            , _direction (direction)
+            , _next      (new Move(nextSteps, nextDirection))
+            {}
+
+            ~Move()
+            {
+                if (_next != nullptr)
+                    delete _next;
+            }
 
             const uint8_t& getSteps() const
             {
@@ -107,25 +116,55 @@ namespace Gungi
     constexpr uint8_t SILVER_RANK = 4;
     constexpr uint8_t BRONZE_RANK = 2;
     constexpr uint8_t NO_TAIL = 0;
-    
-    struct Piece
+
+    class Piece
     {
-        Head head;
-        Tail tail;
-        
-        bool nullPiece;
+        public:
+            Piece()
+            : _head      (Head::None)
+            , _tail      (Tail::None) 
+            , _nullPiece (true)
+            , _onHead    (true) 
+            {}
 
-        Piece()
-        : head      (Head::None)
-        , tail      (Tail::None) 
-        , nullPiece (true)
-        {}
+            Piece(const Head& head, const Tail& tail = Tail::None)
+            : _head      (head)
+            , _tail      (tail)
+            , _nullPiece (false)
+              _onHead    (true)
+            {}
 
-        Piece(const Head& h, const Tail& t = Tail::None)
-        : head      (h)
-        , tail      (t)
-        , nullPiece (false)
-        {}
+            void setSide(const bool& onHead)
+            {
+                _onHead = onHead;
+            }
+
+            const Head& getHead() const
+            {
+                return _head;
+            }
+
+            const Tail& getTail() const
+            {
+                return _tail;
+            }
+
+            bool isNull() const
+            {
+                return _nullPiece;
+            }
+
+            bool onHead() const
+            {
+                return _onHead;
+            }
+
+        private:
+            const Head _head;
+            const Tail _tail;
+            const bool _nullPiece;
+            bool _onHead;
+
     };
     
     uint8_t getHeadValue(const Piece& piece)
@@ -250,9 +289,6 @@ namespace Gungi
         }
     }
 
-    /**
-     * PTR!
-     */
     void genNinjaMoveSet(MoveSet& moveset, const Tier& tier)
     {
         if (tier != Tier::One)
@@ -260,8 +296,8 @@ namespace Gungi
             moveset.emplace(1, Direction::NW);
             moveset.emplace(1, Direction::NE);
         }
-        moveset.emplace(1, Direction::NW, &Move(1, Direction::N))
-        moveset.emplace(1, Direction::NE, &Move(1, Direction::N))
+        moveset.emplace(1, Direction::NW, 1, Direction::N);
+        moveset.emplace(1, Direction::NE, 1, Direction::N);
     }
 
     /**
@@ -422,13 +458,10 @@ namespace Gungi
         }
     }
 
-    /**
-     * PTR!!!
-     */
     void genJouninMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        moveset.emplace(1,Direction::NW, &Move(1, Direction::N));
-        moveset.emplace(1,Direction::NE, &Move(1, Direction::N));
+        moveset.emplace(1,Direction::NW, 1, Direction::N);
+        moveset.emplace(1,Direction::NE, 1, Direction::N);
         moveset.emplace(1,Direction::S);
 
         if (tier == Tier::Two || tier == Tier::Three)
