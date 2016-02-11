@@ -21,4 +21,22 @@ namespace Gungi
     {
         return (idx.z * width * length) + (idx.y * width) + idx.x;
     }
+
+
+    XYZ_Indices toXYZ(const XY_Indices& idx, const size_t& height)
+    {
+        XYZ_Indices res;
+        res.x = idx.x;
+        res.y = idx.y;
+        res.z = height;
+        return res;
+    }
+
+    XY_Indices toXY(const XYZ_Indices& idx)
+    {
+        XY_Indices res;
+        res.x = idx.x;
+        res.y = idx.y;
+        return res;
+    }
 }

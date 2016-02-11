@@ -25,7 +25,6 @@ namespace Gungi
         protected:
             size_t _width, _length;
             T* _matrix;
-            
     };
 
     template <class T, size_t width, size_t length>

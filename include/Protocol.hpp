@@ -1,15 +1,17 @@
 #pragma once
 
-#include <memory>
-#include <set>
+#include <cstdint>
+#include <list>
+
+#include "2DMatrix.hpp"
+#include "3DMatrix.hpp"
 
 namespace Gungi
 {
     constexpr uint8_t BOARD_SIZE = 9;
+    constexpr uint8_t BOARD_TIERS = 3;
     constexpr uint8_t NUM_FRONT_PIECES = 10;
     constexpr uint8_t NUM_BACK_PIECES = 10; 
-
-    using MoveSet = std::set<Move>;
 
     constexpr uint8_t INFINITE_RANGE = ~0;
 
@@ -21,17 +23,19 @@ namespace Gungi
         public:
             Move(const uint8_t& steps, const Direction& direction);
             Move(const uint8_t& steps, const Direction& direction, 
-                    const uint8_t& nextSteps, const uint8_t& nextDirection);
+                    const uint8_t& nextSteps, const Direction& nextDirection);
             ~Move();
             const uint8_t& getSteps() const;
             const Direction& getDirection() const;
-            MovePtr getNext() const;
-        
+            Move* getNext() const;
+
         private:
             const uint8_t _steps;
             const Direction _direction;
-            MovePtr _next;
+            Move* _next;
     };
+
+    using MoveSet = std::list<Move>;
 
     enum class Tier : uint8_t 
     { One, Two, Three };
@@ -91,7 +95,6 @@ namespace Gungi
             const Tail _tail;
             const bool _nullPiece;
             bool _onHead;
-
     };
     
     uint8_t getHeadValue(const Piece& piece);
@@ -120,5 +123,32 @@ namespace Gungi
 
     MoveSet genHeadMoveSet(const Piece& piece, const Tier& tier);
     MoveSet genTailMoveSet(const Piece& piece, const Tier& tier);
+
+    template <class PieceMatrix, class Indices>
+    bool isOccupied(const PieceMatrix& matrix, const Indices& idx);
+
+    template <class PieceMatrix>
+    bool hasAnEmptyTier(const PieceMatrix& matrix, XYZ_Indices idx);
+
+    size_t OverflowSub(const size_t& lhs, const size_t& rhs, const size_t& overflow);
+    size_t OverflowAdd(const size_t& lhs, const size_t& rhs, 
+            const size_t& constraint, const size_t& overflow);
+
+    template <class TwoDimMatrix, class Indices>
+    Indices genIndexOf2DMove(const TwoDimMatrix& matrix, 
+            Indices idx, const Move& move);
+
+    template <class TwoDimMatrix>
+    bool inBound(const TwoDimMatrix& matrix, const XY_Indices& idx);
+
+    template <class ThreeDimMatrix>
+    XYZ_Indices genIndexOf3DMove(const ThreeDimMatrix& matrix, 
+            XYZ_Indices idx, const Move& move);
+
+    template <class ThreeDimMatrix>
+    bool inBound(const ThreeDimMatrix& matrix, const XYZ_Indices& idx);
+
+    template <class Matrix, class Indices>
+    auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset);
 
 }
