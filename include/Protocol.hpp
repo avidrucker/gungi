@@ -29,6 +29,8 @@ namespace Gungi
     enum class Direction : uint8_t 
     { NW, N, NE, E, SE, S, SW, W };
 
+
+
     /**
      * Check this
      */
@@ -183,7 +185,6 @@ namespace Gungi
         }
     }
 
-    
     void genCommanderMoveSet(MoveSet& moveset)
     {
         moveset.emplace(1, Direction::NW);
@@ -218,355 +219,325 @@ namespace Gungi
         else
         {
             moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
-            moveset.emplace(1, Direction::NW);
+            moveset.emplace(2, Direction::NW);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(2, Direction::NE);
+            moveset.emplace(2, Direction::E);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
+            moveset.emplace(2, Direction::W);
         }
     }
 
     void genSamuraiMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-            move[DIRECTIONS::NW] = 1;
-            move[DIRECTIONS::N]  = 1;
-            move[DIRECTIONS::NE] = 1;
-            move[DIRECTIONS::E] = 1;
-            move[DIRECTIONS::W] = 1;
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(1, Direction::W);
         }
         else
         {
-            move[DIRECTIONS::NW] = 1;
-            move[DIRECTIONS::N]  = 2;
-            move[DIRECTIONS::NE] = 1;
-            move[DIRECTIONS::E] = 1;
-            move[DIRECTIONS::S] = 2;
-            move[DIRECTIONS::W] = 1;
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(2, Direction::N);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(2, Direction::S);
+            moveset.emplace(1, Direction::W);
         }
-
-        moveset.insert(move);
     }
 
+    /**
+     * PTR!
+     */
     void genNinjaMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
-        if (tier == Tier::One)
+        if (tier != Tier::One)
         {
-            move[DIRECTIONS::] = 1;     
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
         }
-        else
-        {
-
-        }
-
-        moveset.insert(move);
+        moveset.emplace(1, Direction::NW, &Move(1, Direction::N))
+        moveset.emplace(1, Direction::NE, &Move(1, Direction::N))
     }
 
+    /**
+     * Mobile expanders
+     */
     void genCatapultMoveSet(MoveSet& moveset, const Tier& tier)
-    {
-        Move move { DIRECTIONS::COUNT, 0 };
+    {}
 
-        if (tier == Tier::One)
-        {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
-        }
-        else
-        {
-
-        }
-
-        moveset.insert(move);
-    }
-
+    /**
+     * Mobile expanders
+     */
     void genFortressMoveSet(MoveSet& moveset, const Tier& tier)
-    {
-        Move move { DIRECTIONS::COUNT, 0 };
-
-        if (tier == Tier::One)
-        {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
-        }
-        else
-        {
-
-        }
-
-        moveset.insert(move);
-    }
+    {}
 
     void genHiddenDragonMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(INFINITE_RANGE, Direction::N);
+            moveset.emplace(INFINITE_RANGE, Direction::E);
+            moveset.emplace(INFINITE_RANGE, Direction::S);
+            moveset.emplace(INFINITE_RANGE, Direction::W);
         }
         else
         {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
         }
-
-        moveset.insert(move);
     }
 
     void genProdigyMoveSet(MoveSet& moveset, const Tier& tier)
     {
         Move move { DIRECTIONS::COUNT, 0 };
-
+ 
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(INFINITE_RANGE, Direction::NW);
+            moveset.emplace(INFINITE_RANGE, Direction::NE);
+            moveset.emplace(INFINITE_RANGE, Direction::SE);
+            moveset.emplace(INFINITE_RANGE, Direction::SW);
         }
         else
         {
-
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(1, Direction::W);
         }
-
-        moveset.insert(move);
     }
 
     void genArcherMoveSet(MoveSet& moveset, const Tier& tier)
     {
         Move move { DIRECTIONS::COUNT, 0 };
-
+ 
         if (tier == Tier::One)
         {
-
+            moveset.emplace(2, Direction::N);
+            moveset.emplace(2, Direction::E);
+            moveset.emplace(2, Direction::W);
         }
         else if (tier == Tier::Two)
         {
-
+            moveset.emplace(2, Direction::NW);
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(2, Direction::NE);
+            moveset.emplace(1, Direction::S);
         }
         else
         {
-
+            moveset.emplace(2, Direction::NW);
+            moveset.emplace(2, Direction::NE);
+            moveset.emplace(2, Direction::NE);
+            moveset.emplace(2, Direction::E);
+            moveset.emplace(2, Direction::S);
+            moveset.emplace(2, Direction::W);
         }
-
-        moveset.insert(move);
     }
 
     void genSoldierMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
+            moveset.emplace(1,Direction::N); 
         }
         else if (tier == Tier::Two)
         {
-
+            moveset.emplace(1,Direction::N); 
+            moveset.emplace(2,Direction::E); 
+            moveset.emplace(2,Direction::W); 
         }
         else
         {
-
+            moveset.emplace(1,Direction::NW); 
+            moveset.emplace(1,Direction::NE); 
+            moveset.emplace(2,Direction::E); 
+            moveset.emplace(2,Direction::W); 
         }
-
-        moveset.insert(move);
     }
 
     void genDragonKingMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(INFINITE_RANGE, Direction::N);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(INFINITE_RANGE, Direction::E);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(INFINITE_RANGE, Direction::S);
+            moveset.emplace(1, Direction::SW);
+            moveset.emplace(INFINITE_RANGE, Direction::W);
         }
         else
         {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
         }
-
-        moveset.insert(move);
     }
 
     void genLanceMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(INFINITE_RANGE, Direction::N);
         }
         else
         {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
         }
-
-        moveset.insert(move);
     }
 
     void genPhoenixMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(INFINITE_RANGE, Direction::NW);
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(INFINITE_RANGE, Direction::NE);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(INFINITE_RANGE, Direction::SE);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(INFINITE_RANGE, Direction::SW);
+            moveset.emplace(1, Direction::W);
         }
         else
         {
-
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(1, Direction::W);
         }
-
-        moveset.insert(move);
     }
 
+    /**
+     * PTR!!!
+     */
     void genJouninMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
+        moveset.emplace(1,Direction::NW, &Move(1, Direction::N));
+        moveset.emplace(1,Direction::NE, &Move(1, Direction::N));
+        moveset.emplace(1,Direction::S);
 
-        if (tier == Tier::One)
+        if (tier == Tier::Two || tier == Tier::Three)
         {
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
 
+            if (tier == Tier::Three)
+            {
+                moveset.emplace(2, Direction::SE);
+                moveset.emplace(2, Direction::SE);
+                moveset.emplace(2, Direction::SW);
+                moveset.emplace(2, Direction::SW);
+            }
         }
-        else if (tier == Tier::Two)
-        {
-
-        }
-        else
-        {
-
-        }
-
-        moveset.insert(move);
     }
 
     void genPikeMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(2, Direction::N);
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(1, Direction::W);
         }
         else
         {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
         }
-
-        moveset.insert(move);
     }
 
-    void genGoldMoveSet(MoveSet& moveset, const Tier& tier)
+    void genArrowMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
+        moveset.emplace(1,Direction::N);
+        moveset.emplace(1,Direction::S);
         if (tier == Tier::One)
         {
-
+            moveset.emplace(1,Direction::SE);
+            moveset.emplace(1,Direction::SW);
         }
         else if (tier == Tier::Two)
         {
-
+            moveset.emplace(2,Direction::SE);
+            moveset.emplace(2,Direction::SW);
         }
         else
         {
-
+            moveset.emplace(1,Direction::SE);
+            moveset.emplace(1,Direction::SW);
+            moveset.emplace(2,Direction::SE);
+            moveset.emplace(2,Direction::SW);
         }
+    }
 
-        moveset.insert(move);
+    void genGoldMoveSet(MoveSet& moveset)
+    {
+        moveset.emplace(1,Direction::NW);
+        moveset.emplace(1,Direction::N);
+        moveset.emplace(1,Direction::NE);
+        moveset.emplace(1,Direction::E);
+        moveset.emplace(1,Direction::S);
+        moveset.emplace(1,Direction::W);
     }
 
     void genPistolMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
+            moveset.emplace(1, Direction::NW);
         }
         else
         {
-
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(1, Direction::W);
         }
-
-        moveset.insert(move);
     }
 
     void genSilverMoveSet(MoveSet& moveset, const Tier& tier)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
         if (tier == Tier::One)
         {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
+            moveset.emplace(1, Direction::N);
+            moveset.emplace(1, Direction::E);
+            moveset.emplace(1, Direction::S);
+            moveset.emplace(1, Direction::W);
         }
         else
         {
-
+            moveset.emplace(1, Direction::NW);
+            moveset.emplace(1, Direction::NE);
+            moveset.emplace(1, Direction::SE);
+            moveset.emplace(1, Direction::SW);
         }
-
-        moveset.insert(move);
     }
 
-    void genBronzeMoveSet(MoveSet& moveset, const Tier& tier)
+    void genBronzeMoveSet(MoveSet& moveset)
     {
-        Move move { DIRECTIONS::COUNT, 0 };
-
-        if (tier == Tier::One)
-        {
-
-        }
-        else if (tier == Tier::Two)
-        {
-
-        }
-        else
-        {
-
-        }
-
-        moveset.insert(move);
+        moveset.emplace(1, Direction::E);
+        moveset.emplace(1, Direction::W);
     }
 
     MoveSet genHeadMoveSet(const Piece& piece, const Tier& tier)
@@ -645,7 +616,7 @@ namespace Gungi
                 genSilverMoveSet(moveset, tier);
                 break;
             case Tail::Bronze:
-                genBronzeMoveSet(moveset, tier);
+                genBronzeMoveSet(moveset);
                 break;
             default:
         }
