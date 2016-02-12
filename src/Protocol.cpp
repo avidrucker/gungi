@@ -18,9 +18,9 @@
 
 namespace Gungi
 {
-
-    // move.Class
+    // Move Class
     //
+
     Move::Move(const uint8_t& steps, const Direction& direction)
     : _steps     (steps)
     , _direction (direction)
@@ -57,6 +57,7 @@ namespace Gungi
 
     // Piece class
     //
+    
     Piece::Piece()
     : _head      (Head::None)
     , _tail      (Tail::None) 
