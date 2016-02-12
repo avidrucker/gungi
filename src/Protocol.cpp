@@ -1,17 +1,17 @@
 /*
- *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
- *                    Version 2, December 2004
+ * Copyright 2016 Fermin, Yaneury <fermin.yaneury@gmail.com>
  * 
- * Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * 
- * Everyone is permitted to copy and distribute verbatim or modified
- * copies of this license document, and changing it is allowed as long
- * as the name is changed.
+ *   http://www.apache.org/licenses/LICENSE-2.0
  * 
- *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
- *   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- * 
- *  0. You just DO WHAT THE FUCK YOU WANT TO.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "Protocol.hpp"
@@ -684,14 +684,14 @@ namespace Gungi
     template <class Matrix, class Indices>
     auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset)
     {
-        Heap3DMatrix<bool> allowedmove { BOARD_SIZE, BOARD_SIZE, BOARD_TIERS, false };
+        ThreeDimMatrix<bool> allowedMoves { BOARD_SIZE, BOARD_SIZE, BOARD_TIERS, false };
         for (auto itr = moveset.cbegin(); itr != moveset.cend(); ++itr)
         {
             auto moveIdx = genIndexOf3DMove(matrix, idx, *itr);
             if (inBound(matrix, moveIdx) && hasAnEmptyTier(matrix, moveIdx))
-                allowedmove[moveIdx] = true;
+                allowedMoves[moveIdx] = true;
         }
 
-        return allowedmove;
+        return allowedMoves;
     }
 }
