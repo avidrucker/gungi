@@ -20,23 +20,50 @@
 
 namespace Gungi
 {
-    constexpr size_t INDEX_OVERFLOW = ~0; 
+    using PointSize = size_t;
 
-    struct XY_Indices
+    constexpr PointSize UNBOUND = ~0;
+
+    struct Point
     {
-        size_t x,y; 
+        Point()
+        : x (UNBOUND) 
+        , y (UNBOUND) 
+        {}
+
+        Point(const PointSize& a, const PointSize& b)
+        : x (a)
+        , y (b)
+        {}
+
+        PointSize x, y;
     };
 
-    struct XYZ_Indices
+    struct Point3
     {
-        size_t x, y, z;  
+        Point3()
+        : x (UNBOUND) 
+        , y (UNBOUND) 
+        , z (UNBOUND) 
+        {}
+
+        Point3(const PointSize& a, const PointSize& b, const PointSize& c)
+        : x (a)
+        , y (b)
+        , z (c)
+        {}
+
+        PointSize x, y, z;
     };
 
     size_t coorToIndex(const size_t& x, const size_t& y, const size_t& length);
-    size_t coorToIndex(const XY_Indices& idx, const size_t& length);
+    size_t coorToIndex(const Point& idx, const size_t& length);
     size_t coorToIndex(const size_t& x, const size_t& y, const size_t& z, const size_t& width, const size_t& length);
-    size_t coorToIndex(const XYZ_Indices& idx, const size_t& width, const size_t& length);
+    size_t coorToIndex(const Point3& idx, const size_t& width, const size_t& length);
 
-    XYZ_Indices toXYZ(const XY_Indices& idx, const size_t& height);
-    XY_Indices toXY(const XYZ_Indices& idx);
+    Point3 toXYZ(const Point& idx, const size_t& height);
+    Point toXY(const Point3& idx);
+
+    bool operator < (const Point& lhs, const Point& rhs);
+    bool operator < (const Point3& lhs, const Point3& rhs);
 }

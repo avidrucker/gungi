@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <list>
+#include <array>
 
 #include "Matrix.hpp"
 
@@ -105,11 +106,36 @@ namespace Gungi
             bool isNull() const;
             bool onHead() const;
 
-        private:
-            const Head _head;
-            const Tail _tail;
-            const bool _nullPiece;
+        protected:
+            Head _head;
+            Tail _tail;
+            bool _nullPiece;
             bool _onHead;
+    };
+
+    
+    class IndexedPiece : public Piece
+    {
+        public:
+            IndexedPiece();
+            IndexedPiece(const Head& head, const Tail& tail = Tail::None, const Point3& = Point3());
+            void setIndex(const Point3& idx);
+            const Point3& getIndex() const;
+            friend bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs);
+        private:
+            Point3 _idx;
+    };
+
+    constexpr size_t STD_PIECE_CT = 23;
+
+    class StdPieceSet
+    {
+        public:
+            StdPieceSet();
+            IndexedPiece& operator [] (size_t i);
+            const IndexedPiece& operator [] (size_t i) const;
+        private:
+            IndexedPiece _pieceSet[STD_PIECE_CT];
     };
     
     uint8_t getHeadValue(const Piece& piece);
@@ -143,7 +169,7 @@ namespace Gungi
     bool isOccupied(const PieceMatrix& matrix, const Indices& idx);
 
     template <class PieceMatrix>
-    bool hasAnEmptyTier(const PieceMatrix& matrix, XYZ_Indices idx);
+    bool hasAnEmptyTier(const PieceMatrix& matrix, Point3 idx);
 
     size_t OverflowSub(const size_t& lhs, const size_t& rhs, const size_t& overflow);
     size_t OverflowAdd(const size_t& lhs, const size_t& rhs, 
@@ -154,14 +180,14 @@ namespace Gungi
             Indices idx, const Move& move);
 
     template <class TwoDimMatrix>
-    bool inBound(const TwoDimMatrix& matrix, const XY_Indices& idx);
+    bool inBound(const TwoDimMatrix& matrix, const Point& idx);
 
     template <class ThreeDimMatrix>
-    XYZ_Indices genIndexOf3DMove(const ThreeDimMatrix& matrix, 
-            XYZ_Indices idx, const Move& move);
+    Point3 genIndexOf3DMove(const ThreeDimMatrix& matrix, 
+            Point3 idx, const Move& move);
 
     template <class ThreeDimMatrix>
-    bool inBound(const ThreeDimMatrix& matrix, const XYZ_Indices& idx);
+    bool inBound(const ThreeDimMatrix& matrix, const Point3& idx);
 
     template <class Matrix, class Indices>
     auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset);

@@ -32,8 +32,8 @@ namespace Gungi
             size_t getSize() const;
             T& operator [] (const size_t& i);
             const T& operator [] (const size_t& i) const;
-            T& operator [] (const XY_Indices& idx);
-            const T& operator [] (const XY_Indices& idx) const;
+            T& operator [] (const Point& idx);
+            const T& operator [] (const Point& idx) const;
             T& operator () (const size_t& x, const size_t& y);
             const T& operator () (const size_t& x, const size_t& y) const;
             
@@ -55,8 +55,8 @@ namespace Gungi
             size_t getSize() const;
             T& operator [] (const size_t& i);
             const T& operator [] (const size_t& i) const;
-            T& operator [] (const XYZ_Indices& idx);
-            const T& operator [] (const XYZ_Indices& idx) const;
+            T& operator [] (const Point3& idx);
+            const T& operator [] (const Point3& idx) const;
             T& operator () (const size_t& x, const size_t& y, const size_t& z);
             const T& operator () (const size_t& x, const size_t& y, const size_t& z) const;
 

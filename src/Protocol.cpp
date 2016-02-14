@@ -19,7 +19,6 @@
 namespace Gungi
 {
     // Move Class
-    //
 
     Move::Move(const uint8_t& steps, const Direction& direction)
     : _steps     (steps)
@@ -95,6 +94,68 @@ namespace Gungi
     bool Piece::onHead() const
     {
         return _onHead;
+    }
+
+    IndexedPiece::IndexedPiece()
+    : Piece ()
+    , _idx  ()
+    {}
+
+    IndexedPiece::IndexedPiece(const Head& head, const Tail& tail, const Point3& idx)
+    : Piece (head, tail)
+    , _idx  (idx)
+    {}
+
+    void IndexedPiece::setIndex(const Point3& idx)
+    {
+        _idx = idx;
+    }
+
+    const Point3& IndexedPiece::getIndex() const
+    {
+        return _idx;
+    }
+
+    bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs)
+    {
+        return lhs._idx < rhs._idx;
+    }
+
+    StdPieceSet::StdPieceSet()
+    {
+       _pieceSet[0]  = IndexedPiece(Head::Commander);
+       _pieceSet[1]  = IndexedPiece(Head::Captain, Tail::Pistol);
+       _pieceSet[2]  = IndexedPiece(Head::Captain, Tail::Pistol);
+       _pieceSet[3]  = IndexedPiece(Head::Samurai, Tail::Pike);
+       _pieceSet[4]  = IndexedPiece(Head::Samurai, Tail::Pike);
+       _pieceSet[5]  = IndexedPiece(Head::Ninja, Tail::Jounin);
+       _pieceSet[6]  = IndexedPiece(Head::Ninja, Tail::Jounin);
+       _pieceSet[7]  = IndexedPiece(Head::Ninja, Tail::Jounin);
+       _pieceSet[8]  = IndexedPiece(Head::Catapult, Tail::Lance);
+       _pieceSet[9]  = IndexedPiece(Head::Fortress, Tail::Lance);
+       _pieceSet[10] = IndexedPiece(Head::HiddenDragon, Tail::DragonKing);
+       _pieceSet[11] = IndexedPiece(Head::Prodigy, Tail::Phoenix);
+       _pieceSet[12] = IndexedPiece(Head::Archer, Tail::Arrow);
+       _pieceSet[13] = IndexedPiece(Head::Archer, Tail::Arrow);
+       _pieceSet[14] = IndexedPiece(Head::Soldier, Tail::Gold);
+       _pieceSet[15] = IndexedPiece(Head::Soldier, Tail::Silver);
+       _pieceSet[16] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       _pieceSet[17] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       _pieceSet[18] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       _pieceSet[19] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       _pieceSet[20] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       _pieceSet[21] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       _pieceSet[22] = IndexedPiece(Head::Soldier, Tail::Bronze);
+    }
+
+    IndexedPiece& StdPieceSet::operator [] (size_t i)
+    {
+        return _pieceSet[i];
+    }
+
+    const IndexedPiece& StdPieceSet::operator [] (size_t i) const
+    {
+        return _pieceSet[i];
     }
 
     //Free functions
@@ -594,7 +655,7 @@ namespace Gungi
     }
 
     template <class PieceMatrix>
-    bool hasAnEmptyTier(const PieceMatrix& matrix, XYZ_Indices idx)
+    bool hasAnEmptyTier(const PieceMatrix& matrix, Point3 idx)
     {
         bool emptyTier = false;
         for (auto i = 0u; !emptyTier && i < BOARD_TIERS; ++i)
@@ -631,53 +692,53 @@ namespace Gungi
         switch (move.getDirection())
         {
             case Direction::NW:
-                idx.x = OverflowSub(idx.x, move.getSteps(), INDEX_OVERFLOW);
-                idx.y = OverflowSub(idx.y, move.getSteps(), INDEX_OVERFLOW);
+                idx.x = OverflowSub(idx.x, move.getSteps(), UNBOUND);
+                idx.y = OverflowSub(idx.y, move.getSteps(), UNBOUND);
                 break;
             case Direction::N:
-                idx.y = OverflowSub(idx.y, move.getSteps(), INDEX_OVERFLOW);
+                idx.y = OverflowSub(idx.y, move.getSteps(), UNBOUND);
                 break;
             case Direction::NE:
-                idx.x = OverflowAdd(idx.x, move.getSteps(), matrix.getWidth(), INDEX_OVERFLOW);
-                idx.y = OverflowSub(idx.y, move.getSteps(), INDEX_OVERFLOW);
+                idx.x = OverflowAdd(idx.x, move.getSteps(), matrix.getWidth(), UNBOUND);
+                idx.y = OverflowSub(idx.y, move.getSteps(), UNBOUND);
                 break;
             case Direction::E:
-                idx.x = OverflowAdd(idx.x, move.getSteps(), matrix.getWidth(), INDEX_OVERFLOW);
+                idx.x = OverflowAdd(idx.x, move.getSteps(), matrix.getWidth(), UNBOUND);
                 break;
             case Direction::SE:
-                idx.x = OverflowAdd(idx.x, move.getSteps(), matrix.getWidth(), INDEX_OVERFLOW);
-                idx.y = OverflowAdd(idx.y, move.getSteps(), matrix.getLength(), INDEX_OVERFLOW);
+                idx.x = OverflowAdd(idx.x, move.getSteps(), matrix.getWidth(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getSteps(), matrix.getLength(), UNBOUND);
                 break;
             case Direction::S:
-                idx.y = OverflowAdd(idx.y, move.getSteps(), matrix.getLength(), INDEX_OVERFLOW);
+                idx.y = OverflowAdd(idx.y, move.getSteps(), matrix.getLength(), UNBOUND);
                 break;
             case Direction::SW:
-                idx.x = OverflowSub(idx.x, move.getSteps(), INDEX_OVERFLOW);
-                idx.y = OverflowAdd(idx.y, move.getSteps(), matrix.getLength(), INDEX_OVERFLOW);
+                idx.x = OverflowSub(idx.x, move.getSteps(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getSteps(), matrix.getLength(), UNBOUND);
                 break;
             case Direction::W:
-                idx.x = OverflowSub(idx.x, move.getSteps(), INDEX_OVERFLOW);
+                idx.x = OverflowSub(idx.x, move.getSteps(), UNBOUND);
                 break;
         }
         return idx;
     }
 
     template <class TwoDimMatrix>
-    bool inBound(const TwoDimMatrix& matrix, const XY_Indices& idx)
+    bool inBound(const TwoDimMatrix& matrix, const Point& idx)
     {
         return idx.x < matrix.getWidth() && idx.y < matrix.getHeight();
     }
 
     template <class ThreeDimMatrix>
-    XYZ_Indices genIndexOf3DMove(const ThreeDimMatrix& matrix, 
-            XYZ_Indices idx, const Move& move)
+    Point3 genIndexOf3DMove(const ThreeDimMatrix& matrix, 
+            Point3 idx, const Move& move)
     {
         auto twoDimIDX = genIndexOf2DMove(matrix, toXY(idx), move);
         return toXYZ(twoDimIDX, idx.z);    
     }
 
     template <class ThreeDimMatrix>
-    bool inBound(const ThreeDimMatrix& matrix, const XYZ_Indices& idx)
+    bool inBound(const ThreeDimMatrix& matrix, const Point3& idx)
     {
         return inBound(matrix, toXY(idx)) && idx.y < matrix.getHeight();
     }
@@ -686,6 +747,7 @@ namespace Gungi
     auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset)
     {
         ThreeDimMatrix<bool> allowedMoves { BOARD_SIZE, BOARD_SIZE, BOARD_TIERS, false };
+
         for (auto itr = moveset.cbegin(); itr != moveset.cend(); ++itr)
         {
             auto moveIdx = genIndexOf3DMove(matrix, idx, *itr);

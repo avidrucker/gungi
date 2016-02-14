@@ -23,7 +23,7 @@ namespace Gungi
         return y + x * length;
     }
 
-    size_t coorToIndex(const XY_Indices& idx, const size_t& length)
+    size_t coorToIndex(const Point& idx, const size_t& length)
     {
         return idx.y + idx.x * length; 
     }
@@ -33,26 +33,47 @@ namespace Gungi
         return (z * width * length) + (y * width) + x;
     }
 
-    size_t coorToIndex(const XYZ_Indices& idx, const size_t& width, const size_t& length)
+    size_t coorToIndex(const Point3& idx, const size_t& width, const size_t& length)
     {
         return (idx.z * width * length) + (idx.y * width) + idx.x;
     }
 
 
-    XYZ_Indices toXYZ(const XY_Indices& idx, const size_t& height)
+    Point3 toXYZ(const Point& idx, const size_t& height)
     {
-        XYZ_Indices res;
-        res.x = idx.x;
-        res.y = idx.y;
-        res.z = height;
-        return res;
+        return Point3(idx.x, idx.y, height);
     }
 
-    XY_Indices toXY(const XYZ_Indices& idx)
+    Point toXY(const Point3& idx)
     {
-        XY_Indices res;
-        res.x = idx.x;
-        res.y = idx.y;
-        return res;
+        return Point(idx.x, idx.y);
+    }
+
+    bool operator < (const Point& lhs, const Point& rhs)
+    {
+        if (lhs.x < rhs.x)
+            return true;
+
+        if (rhs.x < lhs.x)
+            return false;
+
+        return lhs.y < rhs.y;
+    }
+
+    bool operator < (const Point3& lhs, const Point3& rhs)
+    {
+        if (lhs.x < rhs.x)
+            return true;
+
+        if (rhs.x < lhs.x)
+            return false;
+
+        if (lhs.y < rhs.y)
+            return true;
+
+        if (rhs.y < lhs.y)
+            return false;
+
+        return lhs.z < rhs.z;
     }
 }

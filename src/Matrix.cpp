@@ -77,13 +77,13 @@ namespace Gungi
     }
 
     template <class T>
-    T& TwoDimMatrix<T>::operator [] (const XY_Indices& idx)
+    T& TwoDimMatrix<T>::operator [] (const Point& idx)
     {
         return _matrix[coorToIndex(idx, _length)];
     }
 
     template <class T>
-    const T& TwoDimMatrix<T>::operator [] (const XY_Indices& idx) const
+    const T& TwoDimMatrix<T>::operator [] (const Point& idx) const
     {
         return _matrix[coorToIndex(idx , _length)];
     }
@@ -167,13 +167,13 @@ namespace Gungi
     }
 
     template <class T>
-    T& ThreeDimMatrix<T>::operator [] (const XYZ_Indices& idx)
+    T& ThreeDimMatrix<T>::operator [] (const Point3& idx)
     {
         return _matrix[coorToIndex(idx,_width,_length)];
     }
 
     template <class T>
-    const T& ThreeDimMatrix<T>::operator [] (const XYZ_Indices& idx) const
+    const T& ThreeDimMatrix<T>::operator [] (const Point3& idx) const
     {
         return _matrix[coorToIndex(idx,_width,_length)];
     }

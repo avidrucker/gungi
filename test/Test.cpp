@@ -2,6 +2,7 @@
 
 #include "Matrix.hpp"
 #include "MatrixManip.hpp"
+#include "Protocol.hpp"
 
 using namespace Gungi;
 
