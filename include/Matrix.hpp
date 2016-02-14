@@ -21,48 +21,61 @@
 namespace Gungi
 {
     template <class T>
-    class TwoDimMatrix 
+    class Matrix2 
     {
+        using SizeType   = size_t;
+        using Ref        = T&;
+        using ConstRef   = const T&;
+        using PtrType    = T*;
+        using AccessType = Point;
+
         public:
-            TwoDimMatrix(const size_t& width, const size_t& length);
-            TwoDimMatrix(const size_t& width, const size_t& length, const T& initValue);
-            ~TwoDimMatrix();
-            size_t getWidth() const;
-            size_t getLength() const;
-            size_t getSize() const;
-            T& operator [] (const size_t& i);
-            const T& operator [] (const size_t& i) const;
-            T& operator [] (const Point& idx);
-            const T& operator [] (const Point& idx) const;
-            T& operator () (const size_t& x, const size_t& y);
-            const T& operator () (const size_t& x, const size_t& y) const;
+            Matrix2(const SizeType& width, const SizeType& length);
+            Matrix2(const SizeType& width, const SizeType& length, ConstRef initValue);
+            ~Matrix2();
+            SizeType getWidth() const;
+            SizeType getLength() const;
+            SizeType getSize() const;
+            Ref operator [] (const SizeType& i);
+            ConstRef operator [] (const SizeType& i) const;
+            Ref operator [] (const AccessType& idx);
+            ConstRef operator [] (const AccessType& idx) const;
+            Ref operator () (const SizeType& x, const SizeType& y);
+            ConstRef operator () (const SizeType& x, const SizeType& y) const;
             
         protected:
-            size_t _width, _length;
-            T* _matrix;
+            SizeType _width, _length;
+            PtrType _matrix;
     };
 
     template <class T>
-    class ThreeDimMatrix 
+    class Matrix3 
     {
+        using SizeType = size_t;
+        using Ref      = T&;
+        using ConstRef = const T&;
+        using PtrType  = T*;
+        using AccessType = Point3;
+
         public:
-            ThreeDimMatrix(const size_t& width, const size_t& length, const size_t& height);
-            ThreeDimMatrix(const size_t& width, const size_t& length, const size_t& height, const T& initValue);
-            ~ThreeDimMatrix();
-            size_t getWidth() const;
-            size_t getLength() const;
-            size_t getHeight() const;
-            size_t getSize() const;
-            T& operator [] (const size_t& i);
-            const T& operator [] (const size_t& i) const;
-            T& operator [] (const Point3& idx);
-            const T& operator [] (const Point3& idx) const;
-            T& operator () (const size_t& x, const size_t& y, const size_t& z);
-            const T& operator () (const size_t& x, const size_t& y, const size_t& z) const;
+            Matrix3(const SizeType& width, const SizeType& length, const SizeType& height);
+            Matrix3(const SizeType& width, const SizeType& length, 
+                    const SizeType& height, ConstRef initValue);
+            ~Matrix3();
+            SizeType getWidth() const;
+            SizeType getLength() const;
+            SizeType getHeight() const;
+            SizeType getSize() const;
+            Ref operator [] (const SizeType& i);
+            ConstRef operator [] (const SizeType& i) const;
+            Ref operator [] (const AccessType& idx);
+            ConstRef operator [] (const AccessType& idx) const;
+            Ref operator () (const SizeType& x, const SizeType& y, const SizeType& z);
+            ConstRef operator () (const SizeType& x, const SizeType& y, const SizeType& z) const;
 
         protected:
-            size_t _width, _length, _height;
-            T* _matrix;
+            SizeType _width, _length, _height;
+            PtrType _matrix;
     };
 }
 

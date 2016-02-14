@@ -18,8 +18,8 @@
 
 namespace Gungi
 {
-    template <class Matrix, class Indices>
-    void swapState(Matrix& matrix, const Indices& idx1, const Indices& idx2)
+    template <class Matrix, class AccessType>
+    void swapState(Matrix& matrix, const AccessType& idx1, const AccessType& idx2)
     {
         auto tmp = matrix[idx1];
         matrix[idx1] = matrix[idx2];
@@ -30,8 +30,8 @@ namespace Gungi
      * State setters 
      */
 
-    template <class Matrix, class Indices, class MatrixType>
-    void setSingleState(Matrix& matrix, const Indices& idx, const MatrixType& state)
+    template <class Matrix, class AccessType, class MatrixType>
+    void setSingleState(Matrix& matrix, const AccessType& idx, const MatrixType& state)
     {
         matrix[idx] = state;
     }
@@ -62,8 +62,8 @@ namespace Gungi
      * State transformers
      */
 
-    template <class Matrix, class Indices, class Transformer>
-    void transformSingleState(Matrix& matrix, const Indices& idx, const Transformer& transFunc)
+    template <class Matrix, class AccessType, class Transformer>
+    void transformSingleState(Matrix& matrix, const AccessType& idx, const Transformer& transFunc)
     {
         transFunc(matrix[idx]);
     }
@@ -95,8 +95,8 @@ namespace Gungi
      * State shifters ; Trail setters
      * Assuming 0,0 is top left corner
      */
-    template <class Matrix, class Indices, class MatrixType>
-    void shiftStateUp_N(Matrix& matrix, Indices idx, const size_t& n, const MatrixType& trailState = MatrixType())
+    template <class Matrix, class AccessType, class MatrixType>
+    void shiftStateUp_N(Matrix& matrix, AccessType idx, const size_t& n, const MatrixType& trailState = MatrixType())
     {
         auto state = matrix[idx];
         auto trailIdx = idx;
@@ -105,8 +105,8 @@ namespace Gungi
         setSingleState(matrix, trailIdx, trailState);
     }
     
-    template <class Matrix, class Indices, class MatrixType>
-    void shiftStateDown_N(Matrix& matrix, Indices idx, const size_t& n, const MatrixType& trailState = MatrixType())
+    template <class Matrix, class AccessType, class MatrixType>
+    void shiftStateDown_N(Matrix& matrix, AccessType idx, const size_t& n, const MatrixType& trailState = MatrixType())
     {
         auto state = matrix[idx];
         auto trailIdx = idx;
@@ -115,8 +115,8 @@ namespace Gungi
         setSingleState(matrix, trailIdx, trailState);
     }
 
-    template <class Matrix, class Indices, class MatrixType>
-    void shiftStateLeft_N(Matrix& matrix, Indices idx, const size_t& n, const MatrixType& trailState = MatrixType())
+    template <class Matrix, class AccessType, class MatrixType>
+    void shiftStateLeft_N(Matrix& matrix, AccessType idx, const size_t& n, const MatrixType& trailState = MatrixType())
     {
         auto state = matrix[idx];
         auto trailIdx = idx;
@@ -125,8 +125,8 @@ namespace Gungi
         setSingleState(matrix, trailIdx, trailState);
     }
 
-    template <class Matrix, class Indices, class MatrixType>
-    void shiftStateRight_N(Matrix& matrix, Indices idx, const size_t& n, const MatrixType& trailState = MatrixType())
+    template <class Matrix, class AccessType, class MatrixType>
+    void shiftStateRight_N(Matrix& matrix, AccessType idx, const size_t& n, const MatrixType& trailState = MatrixType())
     {
         auto state = matrix[idx];
         auto trailIdx = idx;
@@ -135,8 +135,8 @@ namespace Gungi
         setSingleState(matrix, trailIdx, trailState);
     }
 
-    template <class Matrix, class Indices, class Generator>
-    decltype(auto) generate(const Matrix& matrix, const Indices& idx, Generator& genFunc)
+    template <class Matrix, class AccessType, class Generator>
+    decltype(auto) generate(const Matrix& matrix, const AccessType& idx, Generator& genFunc)
     {
         return genFunc(matrix[idx]); 
     }

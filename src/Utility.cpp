@@ -18,28 +18,29 @@
 
 namespace Gungi
 {
-    size_t coorToIndex(const size_t& x, const size_t& y, const size_t& length)
+    size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& length)
     {
         return y + x * length;
     }
 
-    size_t coorToIndex(const Point& idx, const size_t& length)
+    size_t coorToIndex(const Point& idx, const PointSize& length)
     {
         return idx.y + idx.x * length; 
     }
 
-    size_t coorToIndex(const size_t& x, const size_t& y, const size_t& z, const size_t& width, const size_t& length)
+    size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& z, 
+            const PointSize& width, const PointSize& length)
     {
         return (z * width * length) + (y * width) + x;
     }
 
-    size_t coorToIndex(const Point3& idx, const size_t& width, const size_t& length)
+    size_t coorToIndex(const Point3& idx, const PointSize& width, const PointSize& length)
     {
         return (idx.z * width * length) + (idx.y * width) + idx.x;
     }
 
 
-    Point3 toXYZ(const Point& idx, const size_t& height)
+    Point3 toXYZ(const Point& idx, const PointSize& height)
     {
         return Point3(idx.x, idx.y, height);
     }
@@ -75,5 +76,15 @@ namespace Gungi
             return false;
 
         return lhs.z < rhs.z;
+    }
+
+    bool operator == (const Point& lhs, const Point& rhs)
+    {
+        return (lhs.x == rhs.x) && (lhs.y == rhs.y);
+    }
+
+    bool operator == (const Point3& lhs, const Point3& rhs)
+    {
+        return (lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z);
     }
 }

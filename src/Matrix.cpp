@@ -20,14 +20,14 @@ namespace Gungi
 {
 
     template <class T>
-    TwoDimMatrix<T>::TwoDimMatrix(const size_t& width, const size_t& length)
+    Matrix2<T>::Matrix2(const size_t& width, const size_t& length)
     : _width  (width)
     , _length (length)
     , _matrix (new T[width * length])
     {}
 
     template <class T>
-    TwoDimMatrix<T>::TwoDimMatrix(const size_t& width, const size_t& length, const T& initValue)
+    Matrix2<T>::Matrix2(const size_t& width, const size_t& length, const T& initValue)
     : _width  (width)
     , _length (length)
     , _matrix (new T[width * length])
@@ -37,7 +37,7 @@ namespace Gungi
     }
 
     template <class T>
-    TwoDimMatrix<T>::~TwoDimMatrix()
+    Matrix2<T>::~Matrix2()
     {
         if (_matrix != nullptr)
         {
@@ -47,60 +47,60 @@ namespace Gungi
     }
 
     template <class T>
-    size_t TwoDimMatrix<T>::getWidth() const
+    size_t Matrix2<T>::getWidth() const
     {
         return _width;
     }
 
     template <class T>
-    size_t TwoDimMatrix<T>::getLength() const
+    size_t Matrix2<T>::getLength() const
     {
         return _length;
     }
 
     template <class T>
-    size_t TwoDimMatrix<T>::getSize() const
+    size_t Matrix2<T>::getSize() const
     {
         return _width * _length;
     }
     
     template <class T>
-    T& TwoDimMatrix<T>::operator [] (const size_t& i)
+    T& Matrix2<T>::operator [] (const size_t& i)
     {
         return _matrix[i];
     }
 
     template <class T>
-    const T& TwoDimMatrix<T>::operator [] (const size_t& i) const
+    const T& Matrix2<T>::operator [] (const size_t& i) const
     {
         return _matrix[i];
     }
 
     template <class T>
-    T& TwoDimMatrix<T>::operator [] (const Point& idx)
+    T& Matrix2<T>::operator [] (const Point& idx)
     {
         return _matrix[coorToIndex(idx, _length)];
     }
 
     template <class T>
-    const T& TwoDimMatrix<T>::operator [] (const Point& idx) const
+    const T& Matrix2<T>::operator [] (const Point& idx) const
     {
         return _matrix[coorToIndex(idx , _length)];
     }
     
     template <class T>
-    T& TwoDimMatrix<T>::operator () (const size_t& x, const size_t& y)
+    T& Matrix2<T>::operator () (const size_t& x, const size_t& y)
     {
         return _matrix[coorToIndex(x, y, _length)];
     }
 
     template <class T>
-    const T& TwoDimMatrix<T>::operator () (const size_t& x, const size_t& y) const
+    const T& Matrix2<T>::operator () (const size_t& x, const size_t& y) const
     {
         return _matrix[coorToIndex(x, y, _length)];
     }
     template <class T>
-    ThreeDimMatrix<T>::ThreeDimMatrix
+    Matrix3<T>::Matrix3
         (const size_t& width, const size_t& length, const size_t& height)
     : _width  (width)
     , _length (length)
@@ -109,7 +109,7 @@ namespace Gungi
     {}
 
     template <class T>
-    ThreeDimMatrix<T>::ThreeDimMatrix
+    Matrix3<T>::Matrix3
         (const size_t& width, const size_t& length, const size_t& height, const T& initValue)
     : _width  (width)
     , _length (length)
@@ -121,7 +121,7 @@ namespace Gungi
     }
 
     template <class T>
-    ThreeDimMatrix<T>::~ThreeDimMatrix()
+    Matrix3<T>::~Matrix3()
     {
         if (_matrix != nullptr)
         {
@@ -131,61 +131,61 @@ namespace Gungi
     }
 
     template <class T>
-    size_t ThreeDimMatrix<T>::getWidth() const
+    size_t Matrix3<T>::getWidth() const
     {
         return _width;
     }
 
     template <class T>
-    size_t ThreeDimMatrix<T>::getLength() const
+    size_t Matrix3<T>::getLength() const
     {
         return _length;
     }
 
     template <class T>
-    size_t ThreeDimMatrix<T>::getHeight() const
+    size_t Matrix3<T>::getHeight() const
     {
         return _height;
     }
 
     template <class T>
-    size_t ThreeDimMatrix<T>::getSize() const
+    size_t Matrix3<T>::getSize() const
     {
         return _width * _length * _height;
     }
 
     template <class T>
-    T& ThreeDimMatrix<T>::operator [] (const size_t& i)
+    T& Matrix3<T>::operator [] (const size_t& i)
     {
         return _matrix[i];
     }
 
     template <class T>
-    const T& ThreeDimMatrix<T>::operator [] (const size_t& i) const
+    const T& Matrix3<T>::operator [] (const size_t& i) const
     {
         return _matrix[i];
     }
 
     template <class T>
-    T& ThreeDimMatrix<T>::operator [] (const Point3& idx)
+    T& Matrix3<T>::operator [] (const Point3& idx)
     {
         return _matrix[coorToIndex(idx,_width,_length)];
     }
 
     template <class T>
-    const T& ThreeDimMatrix<T>::operator [] (const Point3& idx) const
+    const T& Matrix3<T>::operator [] (const Point3& idx) const
     {
         return _matrix[coorToIndex(idx,_width,_length)];
     }
 
     template <class T>
-    T& ThreeDimMatrix<T>::operator () (const size_t& x, const size_t& y, const size_t& z)
+    T& Matrix3<T>::operator () (const size_t& x, const size_t& y, const size_t& z)
     {
         return _matrix[coorToIndex(x,y,z,_width,_length)];
     }
 
     template <class T>
-    const T& ThreeDimMatrix<T>::operator ()  
+    const T& Matrix3<T>::operator ()  
         (const size_t& x, const size_t& y, const size_t& z) const
     {
         return _matrix[coorToIndex(x,y,z,_width,_length)];

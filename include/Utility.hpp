@@ -56,14 +56,17 @@ namespace Gungi
         PointSize x, y, z;
     };
 
-    size_t coorToIndex(const size_t& x, const size_t& y, const size_t& length);
-    size_t coorToIndex(const Point& idx, const size_t& length);
-    size_t coorToIndex(const size_t& x, const size_t& y, const size_t& z, const size_t& width, const size_t& length);
-    size_t coorToIndex(const Point3& idx, const size_t& width, const size_t& length);
+    size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& length);
+    size_t coorToIndex(const Point& idx, const PointSize& length);
+    size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& z, 
+            const PointSize& width, const PointSize& length);
+    size_t coorToIndex(const Point3& idx, const PointSize& width, const PointSize& length);
 
-    Point3 toXYZ(const Point& idx, const size_t& height);
+    Point3 toXYZ(const Point& idx, const PointSize& height);
     Point toXY(const Point3& idx);
 
     bool operator < (const Point& lhs, const Point& rhs);
     bool operator < (const Point3& lhs, const Point3& rhs);
+    bool operator == (const Point& lhs, const Point& rhs);
+    bool operator == (const Point3& lhs, const Point3& rhs);
 }

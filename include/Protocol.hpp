@@ -36,17 +36,19 @@ namespace Gungi
 
     class Move
     {
+        using MagnitudeType = uint8_t;
+
         public:
-            Move(const uint8_t& steps, const Direction& direction);
-            Move(const uint8_t& steps, const Direction& direction, 
-                    const uint8_t& nextSteps, const Direction& nextDirection);
+            Move(const MagnitudeType& magnitude, const Direction& direction);
+            Move(const MagnitudeType& magnitude, const Direction& direction, 
+                    const MagnitudeType& nextMagnitude, const Direction& nextDirection);
             ~Move();
-            const uint8_t& getSteps() const;
+            const MagnitudeType& getMagnitude() const;
             const Direction& getDirection() const;
             Move* getNext() const;
 
         private:
-            const uint8_t _steps;
+            const MagnitudeType _magnitude;
             const Direction _direction;
             Move* _next;
     };
@@ -116,24 +118,31 @@ namespace Gungi
     
     class IndexedPiece : public Piece
     {
+        using IndexingType = Point3;
+
         public:
             IndexedPiece();
-            IndexedPiece(const Head& head, const Tail& tail = Tail::None, const Point3& = Point3());
-            void setIndex(const Point3& idx);
-            const Point3& getIndex() const;
+            IndexedPiece(const Head& head, const Tail& tail = Tail::None, const IndexingType& idx = IndexingType());
+            void setIndex(const IndexingType& idx);
+            const IndexingType& getIndex() const;
             friend bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs);
+            friend bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs);
         private:
-            Point3 _idx;
+            IndexingType _idx;
     };
 
     constexpr size_t STD_PIECE_CT = 23;
 
     class StdPieceSet
     {
+        using AccessType = size_t;
+
         public:
             StdPieceSet();
-            IndexedPiece& operator [] (size_t i);
-            const IndexedPiece& operator [] (size_t i) const;
+            IndexedPiece& operator [] (const AccessType& i);
+            const IndexedPiece& operator [] (const AccessType& i) const;
+
+            void swap(const AccessType& a, const AccessType& b);
         private:
             IndexedPiece _pieceSet[STD_PIECE_CT];
     };
@@ -165,31 +174,102 @@ namespace Gungi
     MoveSet genHeadMoveSet(const Piece& piece, const Tier& tier);
     MoveSet genTailMoveSet(const Piece& piece, const Tier& tier);
 
-    template <class PieceMatrix, class Indices>
-    bool isOccupied(const PieceMatrix& matrix, const Indices& idx);
-
-    template <class PieceMatrix>
-    bool hasAnEmptyTier(const PieceMatrix& matrix, Point3 idx);
-
     size_t OverflowSub(const size_t& lhs, const size_t& rhs, const size_t& overflow);
     size_t OverflowAdd(const size_t& lhs, const size_t& rhs, 
             const size_t& constraint, const size_t& overflow);
 
-    template <class TwoDimMatrix, class Indices>
-    Indices genIndexOf2DMove(const TwoDimMatrix& matrix, 
-            Indices idx, const Move& move);
+    template <class PieceMatrix, class Indices>
+    bool isOccupied(const PieceMatrix& matrix, const Indices& idx)
+    {
+        return !matrix[idx].isNull();
+    }
 
-    template <class TwoDimMatrix>
-    bool inBound(const TwoDimMatrix& matrix, const Point& idx);
+    template <class PieceMatrix>
+    bool hasAnEmptyTier(const PieceMatrix& matrix, Point3 idx)
+    {
+        bool emptyTier = false;
+        for (auto i = 0u; !emptyTier && i < BOARD_TIERS; ++i)
+        {
+            idx.z = i;
+            if (matrix[idx].isNull())
+                emptyTier = true; 
+        }
+        return emptyTier;
+    }
 
-    template <class ThreeDimMatrix>
-    Point3 genIndexOf3DMove(const ThreeDimMatrix& matrix, 
-            Point3 idx, const Move& move);
+    /**
+     * Assuming (0,0) is top left
+     */
+    template <class Matrix2, class Indices>
+    Indices genIndexOf2DMove(const Matrix2& matrix, 
+            Indices idx, const Move& move)
+    {
+        switch (move.getDirection())
+        {
+            case Direction::NW:
+                idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
+                idx.y = OverflowSub(idx.y, move.getMagnitude(), UNBOUND);
+                break;
+            case Direction::N:
+                idx.y = OverflowSub(idx.y, move.getMagnitude(), UNBOUND);
+                break;
+            case Direction::NE:
+                idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
+                idx.y = OverflowSub(idx.y, move.getMagnitude(), UNBOUND);
+                break;
+            case Direction::E:
+                idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
+                break;
+            case Direction::SE:
+                idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
+                break;
+            case Direction::S:
+                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
+                break;
+            case Direction::SW:
+                idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
+                break;
+            case Direction::W:
+                idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
+                break;
+        }
+        return idx;
+    }
 
-    template <class ThreeDimMatrix>
-    bool inBound(const ThreeDimMatrix& matrix, const Point3& idx);
+    template <class Matrix2>
+    bool inBound(const Matrix2& matrix, const Point& idx)
+    {
+        return idx.x < matrix.getWidth() && idx.y < matrix.getHeight();
+    }
+
+    template <class Matrix3>
+    Point3 genIndexOf3DMove(const Matrix3& matrix, 
+            Point3 idx, const Move& move)
+    {
+        auto twoDimIDX = genIndexOf2DMove(matrix, toXY(idx), move);
+        return toXYZ(twoDimIDX, idx.z);
+    }
+
+    template <class Matrix3>
+    bool inBound(const Matrix3& matrix, const Point3& idx)
+    {
+        return inBound(matrix, toXY(idx)) && idx.y < matrix.getHeight();
+    }
 
     template <class Matrix, class Indices>
-    auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset);
+    auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset)
+    {
+        Matrix3<bool> allowedMoves { BOARD_SIZE, BOARD_SIZE, BOARD_TIERS, false };
 
+        for (auto itr = moveset.cbegin(); itr != moveset.cend(); ++itr)
+        {
+            auto moveIdx = genIndexOf3DMove(matrix, idx, *itr);
+            if (inBound(matrix, moveIdx) && hasAnEmptyTier(matrix, moveIdx))
+                allowedMoves[moveIdx] = true;
+        }
+
+        return allowedMoves;
+    }
 }
