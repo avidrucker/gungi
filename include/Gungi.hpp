@@ -35,24 +35,43 @@ namespace Gungi
     class Player
     {
         using AccessType = size_t;
+        using SetType = StdPieceSet::SetType;
 
         public:
             enum class Color : uint8_t { Black, White };
 
             Player(Board& gameBoard, const Color& color);
             Player(Board* gameBoard, const Color& color);
-            
             const IndexedPiece& operator [] (const AccessType& i) const;
             const Point3& indexFor(const AccessType& i) const;
             void placeOnBoard(const AccessType& i, const Point3& spot);
-
             void move(const AccessType& idx, const Move& move); 
-
             const Color& getColor() const;
+            const SetType& getFullSet() const;
         private:
            StdPieceSet _pieces;
            Board* _gameBoard;
            Color _color;
            uint8_t _onHandCursor;
+    };
+
+    class Game
+    {
+        using AccessType = size_t;
+
+        public:
+            Game();
+            void start();
+            const Player& currentPlayer() const;
+            void placeOnBoard(const AccessType& i, const Point3& spot);
+            void move(const AccessType& idx, const Move& move);
+        private:
+            void _flipPlayer();
+            bool _running;
+            bool _onesTurn;
+            Board _gameBoard;
+            Player _one;
+            Player _two;
+            Player* _currentPlayer;
     };
 }

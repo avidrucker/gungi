@@ -20,19 +20,19 @@ namespace Gungi
 {
 
     template <class T>
-    Matrix2<T>::Matrix2(const size_t& width, const size_t& length)
+    Matrix2<T>::Matrix2(const SizeType& width, const SizeType& length)
     : _width  (width)
     , _length (length)
     , _matrix (new T[width * length])
     {}
 
     template <class T>
-    Matrix2<T>::Matrix2(const size_t& width, const size_t& length, const T& initValue)
+    Matrix2<T>::Matrix2(const SizeType& width, const SizeType& length, ConstRef initValue)
     : _width  (width)
     , _length (length)
     , _matrix (new T[width * length])
     {
-        for (size_t i = 0; i < getSize(); ++i)
+        for (SizeType i = 0; i < getSize(); ++i)
             _matrix[i] = initValue;
     }
 
@@ -47,61 +47,62 @@ namespace Gungi
     }
 
     template <class T>
-    size_t Matrix2<T>::getWidth() const
+    typename Matrix2<T>::SizeType Matrix2<T>::getWidth() const
     {
         return _width;
     }
 
     template <class T>
-    size_t Matrix2<T>::getLength() const
+    typename Matrix2<T>::SizeType Matrix2<T>::getLength() const
     {
         return _length;
     }
 
     template <class T>
-    size_t Matrix2<T>::getSize() const
+    typename Matrix2<T>::SizeType Matrix2<T>::getSize() const
     {
         return _width * _length;
     }
     
     template <class T>
-    T& Matrix2<T>::operator [] (const size_t& i)
+    typename Matrix2<T>::Ref Matrix2<T>::operator [] (const SizeType& i)
     {
         return _matrix[i];
     }
 
     template <class T>
-    const T& Matrix2<T>::operator [] (const size_t& i) const
+    typename Matrix2<T>::ConstRef Matrix2<T>::operator [] (const SizeType& i) const
     {
         return _matrix[i];
     }
 
     template <class T>
-    T& Matrix2<T>::operator [] (const Point& idx)
+    typename Matrix2<T>::Ref Matrix2<T>::operator [] (const AccessType& idx)
     {
         return _matrix[coorToIndex(idx, _length)];
     }
 
     template <class T>
-    const T& Matrix2<T>::operator [] (const Point& idx) const
+    typename Matrix2<T>::ConstRef Matrix2<T>::operator [] (const AccessType& idx) const
     {
         return _matrix[coorToIndex(idx , _length)];
     }
     
     template <class T>
-    T& Matrix2<T>::operator () (const size_t& x, const size_t& y)
+    typename Matrix2<T>::Ref Matrix2<T>::operator () (const SizeType& x, const SizeType& y)
     {
         return _matrix[coorToIndex(x, y, _length)];
     }
 
     template <class T>
-    const T& Matrix2<T>::operator () (const size_t& x, const size_t& y) const
+    typename Matrix2<T>::ConstRef Matrix2<T>::operator () (const SizeType& x, const SizeType& y) const
     {
         return _matrix[coorToIndex(x, y, _length)];
     }
+
     template <class T>
     Matrix3<T>::Matrix3
-        (const size_t& width, const size_t& length, const size_t& height)
+        (const SizeType& width, const SizeType& length, const SizeType& height)
     : _width  (width)
     , _length (length)
     , _height (height)
@@ -110,13 +111,13 @@ namespace Gungi
 
     template <class T>
     Matrix3<T>::Matrix3
-        (const size_t& width, const size_t& length, const size_t& height, const T& initValue)
+        (const SizeType& width, const SizeType& length, const SizeType& height, ConstRef initValue)
     : _width  (width)
     , _length (length)
     , _height (height)
     , _matrix (new T[width * length * height])
     {
-        for (size_t i = 0; i < getSize(); ++i)
+        for (SizeType i = 0; i < getSize(); ++i)
             _matrix[i] = initValue;
     }
 
@@ -131,64 +132,63 @@ namespace Gungi
     }
 
     template <class T>
-    size_t Matrix3<T>::getWidth() const
+    typename Matrix3<T>::SizeType Matrix3<T>::getWidth() const
     {
         return _width;
     }
 
     template <class T>
-    size_t Matrix3<T>::getLength() const
+    typename Matrix3<T>::SizeType Matrix3<T>::getLength() const
     {
         return _length;
     }
 
     template <class T>
-    size_t Matrix3<T>::getHeight() const
+    typename Matrix3<T>::SizeType Matrix3<T>::getHeight() const
     {
         return _height;
     }
 
     template <class T>
-    size_t Matrix3<T>::getSize() const
+    typename Matrix3<T>::SizeType Matrix3<T>::getSize() const
     {
         return _width * _length * _height;
     }
 
     template <class T>
-    T& Matrix3<T>::operator [] (const size_t& i)
+    typename Matrix3<T>::Ref Matrix3<T>::operator [] (const SizeType& i)
     {
         return _matrix[i];
     }
 
     template <class T>
-    const T& Matrix3<T>::operator [] (const size_t& i) const
+    typename Matrix3<T>::ConstRef Matrix3<T>::operator [] (const SizeType& i) const
     {
         return _matrix[i];
     }
 
     template <class T>
-    T& Matrix3<T>::operator [] (const Point3& idx)
+    typename Matrix3<T>::Ref Matrix3<T>::operator [] (const AccessType& idx)
     {
         return _matrix[coorToIndex(idx,_width,_length)];
     }
 
     template <class T>
-    const T& Matrix3<T>::operator [] (const Point3& idx) const
+    typename Matrix3<T>::ConstRef Matrix3<T>::operator [] (const AccessType& idx) const
     {
         return _matrix[coorToIndex(idx,_width,_length)];
     }
 
     template <class T>
-    T& Matrix3<T>::operator () (const size_t& x, const size_t& y, const size_t& z)
+    typename Matrix3<T>::Ref Matrix3<T>::operator () (const SizeType& x, const SizeType& y, const SizeType& z)
     {
         return _matrix[coorToIndex(x,y,z,_width,_length)];
     }
-
+    
     template <class T>
-    const T& Matrix3<T>::operator ()  
-        (const size_t& x, const size_t& y, const size_t& z) const
+    typename Matrix3<T>::ConstRef Matrix3<T>::operator ()  
+        (const SizeType& x, const SizeType& y, const SizeType& z) const
     {
         return _matrix[coorToIndex(x,y,z,_width,_length)];
     }
-
 }

@@ -73,4 +73,56 @@ namespace Gungi
     {
         return _color;
     }
+
+    const Player::SetType& Player::getFullSet() const
+    {
+        return _pieces.showSet();
+    }
+
+    Game::Game()
+    : _running       (false)
+    , _onesTurn      (true)
+    , _gameBoard     ()
+    , _one           (&_gameBoard, Player::Color::Black)
+    , _two           (&_gameBoard, Player::Color::White)
+    {}
+
+    void Game::start()
+    {
+        if (!_running)
+        {
+            _running = true;
+            _currentPlayer = &_one;
+        }
+    }
+
+    const Player& Game::currentPlayer() const
+    {
+        return *_currentPlayer; 
+    }
+
+    void Game::placeOnBoard(const AccessType& i, const Point3& spot)
+    {
+        if (_running)
+        {
+            _currentPlayer->placeOnBoard(i, spot);
+            _flipPlayer();
+        }
+    }
+
+    void Game::move(const AccessType& idx, const Move& move)
+    {
+        if (_running)
+        {
+            _currentPlayer->move(idx,move);
+            _flipPlayer();
+        }
+    }
+
+    void Game::_flipPlayer()
+    {
+        _currentPlayer = _onesTurn ? &_two : &_one;
+        _onesTurn = !_onesTurn;
+    }
+
 }

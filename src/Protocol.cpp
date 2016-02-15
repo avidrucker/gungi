@@ -176,6 +176,11 @@ namespace Gungi
         }
     }
 
+    const StdPieceSet::SetType& StdPieceSet::showSet() const
+    {
+        return _pieceSet;
+    }
+    
     //Free functions
     uint8_t getHeadValue(const Piece& piece)
     {

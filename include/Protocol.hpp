@@ -138,13 +138,17 @@ namespace Gungi
         using AccessType = size_t;
 
         public:
+
+            using SetType = std::array<IndexedPiece,STD_PIECE_CT>;
+
             StdPieceSet();
             IndexedPiece& operator [] (const AccessType& i);
             const IndexedPiece& operator [] (const AccessType& i) const;
 
             void swap(const AccessType& a, const AccessType& b);
+            const SetType& showSet() const;
         private:
-            IndexedPiece _pieceSet[STD_PIECE_CT];
+            SetType _pieceSet;
     };
     
     uint8_t getHeadValue(const Piece& piece);
