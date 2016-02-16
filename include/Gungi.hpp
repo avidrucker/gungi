@@ -62,6 +62,7 @@ namespace Gungi
         public:
             Game();
             void start();
+            const Board& gameBoard() const;
             const Player& currentPlayer() const;
             void placeOnBoard(const AccessType& i, const Point3& spot);
             void move(const AccessType& idx, const Move& move);

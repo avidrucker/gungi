@@ -127,6 +127,7 @@ namespace Gungi
             const IndexingType& getIndex() const;
             friend bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs);
             friend bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs);
+            
         private:
             IndexingType _idx;
     };

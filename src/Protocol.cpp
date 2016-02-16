@@ -235,7 +235,6 @@ namespace Gungi
                 return BRONZE_RANK;
             default:
                 return NO_TAIL;
-
         }
     }
 

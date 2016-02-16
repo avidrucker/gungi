@@ -82,7 +82,7 @@ namespace Gungi
     Game::Game()
     : _running       (false)
     , _onesTurn      (true)
-    , _gameBoard     ()
+    , _gameBoard     (Board())
     , _one           (&_gameBoard, Player::Color::Black)
     , _two           (&_gameBoard, Player::Color::White)
     {}
@@ -94,6 +94,11 @@ namespace Gungi
             _running = true;
             _currentPlayer = &_one;
         }
+    }
+
+    const Board& Game::gameBoard() const
+    {
+        return _gameBoard;
     }
 
     const Player& Game::currentPlayer() const
