@@ -68,7 +68,6 @@ char getHeadChar(const Head& head)
 
 char getTailChar(const Tail& tail)
 {
-
         switch (tail)
         {
             case Tail::DragonKing:
@@ -121,7 +120,6 @@ void displayBoard(const Board& board)
                 auto p = board(i,k,j);
                 print(*p);
             }
-
             cout << '|';
         }
 

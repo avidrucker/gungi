@@ -59,6 +59,9 @@ namespace Gungi
     {
         using AccessType = size_t;
 
+        enum class Phase : uint8_t
+        { Standby, Placement, Running };
+
         public:
             Game();
             void start();
@@ -68,11 +71,14 @@ namespace Gungi
             void move(const AccessType& idx, const Move& move);
         private:
             void _flipPlayer();
-            bool _running;
+            void _progressPhase();
+            bool _validPlacement(const Phase& phase, const AccessType& i, const Point3& spot) const;
+            bool _running() const;
             bool _onesTurn;
             Board _gameBoard;
             Player _one;
             Player _two;
+            Phase _phase;
             Player* _currentPlayer;
     };
 }

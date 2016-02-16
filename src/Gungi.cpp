@@ -80,19 +80,19 @@ namespace Gungi
     }
 
     Game::Game()
-    : _running       (false)
-    , _onesTurn      (true)
+    : _onesTurn      (true)
     , _gameBoard     (Board())
     , _one           (&_gameBoard, Player::Color::Black)
     , _two           (&_gameBoard, Player::Color::White)
+    , _phase         (Phase::Standby)
     {}
 
     void Game::start()
     {
-        if (!_running)
+        if (_phase == Phase::Standby)
         {
-            _running = true;
             _currentPlayer = &_one;
+            _progressPhase();
         }
     }
 
@@ -108,7 +108,7 @@ namespace Gungi
 
     void Game::placeOnBoard(const AccessType& i, const Point3& spot)
     {
-        if (_running)
+        if (_phase != Phase::Standby && _validPlacement(_phase,i,spot))
         {
             _currentPlayer->placeOnBoard(i, spot);
             _flipPlayer();
@@ -117,7 +117,7 @@ namespace Gungi
 
     void Game::move(const AccessType& idx, const Move& move)
     {
-        if (_running)
+        if (_running())
         {
             _currentPlayer->move(idx,move);
             _flipPlayer();
@@ -130,4 +130,29 @@ namespace Gungi
         _onesTurn = !_onesTurn;
     }
 
+    void Game::_progressPhase()
+    {
+        switch (_phase)
+        {
+            case Phase::Standby:
+                _phase = Phase::Standby;
+                break;
+            case Phase::Placement:
+                _phase = Phase::Running;
+                break;
+            case Phase::Running:
+                _phase = Phase::Standby;
+                break;
+        }
+    }
+
+    bool Game::_validPlacement(const Phase& phase, const AccessType& i, const Point3& spot) const
+    {
+        return true;
+    }
+
+    bool Game::_running() const
+    {
+        return _phase == Phase::Running;
+    }
 }
