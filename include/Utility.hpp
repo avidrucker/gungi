@@ -43,23 +43,23 @@ namespace Gungi
     {
         Point3()
         : x (UNBOUND) 
-        , y (UNBOUND) 
         , z (UNBOUND) 
+        , y (UNBOUND) 
         {}
 
         Point3(const PointSize& a, const PointSize& b, const PointSize& c)
         : x (a)
-        , y (b)
         , z (c)
+        , y (b)
         {}
 
-        PointSize x, y, z;
+        PointSize x, z, y;
     };
 
     size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& length);
     size_t coorToIndex(const Point& idx, const PointSize& length);
-    size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& z, 
-            const PointSize& width, const PointSize& length);
+    size_t coorToIndex(const PointSize& x, const PointSize& z, const PointSize& y, 
+            const PointSize& width, const PointSize& depth);
     size_t coorToIndex(const Point3& idx, const PointSize& width, const PointSize& length);
 
     Point3 toXYZ(const Point& idx, const PointSize& height);

@@ -3,6 +3,22 @@
 
 #include <Gungi.hpp>
 
+/**
+ * Notes:
+ * Using Clang && GCC on 32-Bit:
+ * sizeof (Piece) = 4
+ * sizeof (size_t) = 4
+ * sizeof (Point3) = 12
+ * sizeof (IndexedPiece) = 16
+ *
+ * On 64-Bit:
+ * sizeof (Piece) = TBD
+ * sizeof (size_t) = TBD
+ * sizeof (Point3) = TBD
+ * sizeof (IndexedPiece) = TBD
+ */
+
+
 using std::cout;
 using std::cin;
 using std::endl;
@@ -19,21 +35,34 @@ int main()
 
     Game game;
     game.start();
-    const Board* board = &game.gameBoard();
+    cout << sizeof (Piece) << endl
+    << sizeof (size_t) << endl
+    << sizeof (Point3) << endl
+    << sizeof (IndexedPiece) << endl;
     for (auto i = 0u; i < 23; ++i)
     {
-        size_t x = rand() % 9;
-        size_t y = rand() % 9;
-        size_t z = rand() % 3;
-        Point3 pt {x,y,z};
-        game.placeOnBoard(i,pt);
-        x = rand() % 9;
-        y = rand() % 9;
-        z = rand() % 3;
-        pt = Point3(x,y,z);
-        game.placeOnBoard(i,pt);
+        size_t x;
+        size_t y;
+        size_t z; 
+        Point3 pt;
+        do
+        {
+            x = rand() % 9;
+            y = 0;;
+            z = rand() % 3;
+            pt = Point3(x,z,y);
+        } while (!game.placeOnBoard(i, pt));
+        
+        do
+        {
+            x = rand() % 9;
+            y = 0;
+            z = rand() % 3 + 6;
+            pt = Point3(x,z,y);
+        } while (!game.placeOnBoard(i, pt));
     }
-        displayBoard(*board);
+    const Board* board = &game.gameBoard();
+    displayBoard(*board);
     return 0;
 }
 
@@ -115,7 +144,7 @@ void displayBoard(const Board& board)
         cout << '|';
         for (auto j = 0u; j < board.getHeight(); ++j)
         {
-            for (auto k = 0u; k < board.getLength(); ++k)
+            for (auto k = 0u; k < board.getDepth(); ++k)
             {
                 auto p = board(i,k,j);
                 print(*p);
@@ -127,7 +156,7 @@ void displayBoard(const Board& board)
 
         for (auto j = 0u; j < board.getHeight(); ++j)
         {
-            for (auto k = 0u; k < board.getLength(); ++k)
+            for (auto k = 0u; k < board.getDepth(); ++k)
                 cout << '-';
 
             cout << ' ';

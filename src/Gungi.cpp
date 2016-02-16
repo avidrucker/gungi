@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Gungi.hpp"
+#include <Gungi.hpp>
 
 namespace Gungi
 {
@@ -33,25 +33,38 @@ namespace Gungi
         for (auto i = 0u; !emptyTier && i < BOARD_TIERS; ++i)
         {
             idx.z = i;
-            auto j = coorToIndex(idx, getWidth(), getLength());
+            auto j = coorToIndex(idx, getWidth(), getDepth());
             if (_matrix[j]->isNull())
                 emptyTier = true; 
         }
         return emptyTier;
     }
 
-    Player::Player(Board& gameBoard, const Color& color)
+    Point3 Board::convertIndex(const Orientation& o, const Point3& idx)
+    {
+        if (o == Orientation::Positive) // I know, what's the point of having the function
+            return idx;
+        
+        auto pt = idx;
+        pt.x = BOARD_SIZE - idx.x;
+        pt.z = BOARD_SIZE - idx.z;
+        return pt;
+    }
+
+    Player::Player(Board& gameBoard, const Color& color, const Orientation& o)
     : _pieces       ()
     , _gameBoard    (&gameBoard)
     , _color        (color)
     , _onHandCursor (STD_PIECE_CT)
+    , _orientation  (o)
     {}
 
-    Player::Player(Board* gameBoard, const Color& color)
+    Player::Player(Board* gameBoard, const Color& color, const Orientation& o)
     : _pieces       ()
     , _gameBoard    (gameBoard)
     , _color        (color)
     , _onHandCursor (STD_PIECE_CT)
+    , _orientation  (o)
     {}
 
     void Player::placeOnBoard(const AccessType& i, const Point3& spot)
@@ -92,11 +105,16 @@ namespace Gungi
         return _pieces.showSet();
     }
 
+    const Player::Orientation& Player::getOrientation() const
+    {
+        return _orientation;
+    }
+
     Game::Game()
     : _onesTurn      (true)
     , _gameBoard     (Board())
-    , _one           (&_gameBoard, Player::Color::Black)
-    , _two           (&_gameBoard, Player::Color::White)
+    , _one           (&_gameBoard, Player::Color::Black, Board::Orientation::Positive)
+    , _two           (&_gameBoard, Player::Color::White, Board::Orientation::Negative)
     , _phase         (Phase::Standby)
     {}
 
@@ -119,13 +137,21 @@ namespace Gungi
         return *_currentPlayer; 
     }
 
-    void Game::placeOnBoard(const AccessType& i, const Point3& spot)
+    bool Game::placeOnBoard(const AccessType& i, const Point3& spot)
     {
-        if (_phase != Phase::Standby && _validPlacement(i, spot))
+        if (_phase == Phase::Standby)
+            return false;
+
+        auto pt = Board::convertIndex(_currentPlayer->getOrientation(), spot);
+
+        if (_validPlacement(i, pt, _currentPlayer->getOrientation()))
         {
-            _currentPlayer->placeOnBoard(i, spot);
+            _currentPlayer->placeOnBoard(i, pt);
             _flipPlayer();
+            return true;
         }
+
+        return false;
     }
 
     void Game::move(const AccessType& idx, const Move& move)
@@ -148,7 +174,7 @@ namespace Gungi
         switch (_phase)
         {
             case Phase::Standby:
-                _phase = Phase::Standby;
+                _phase = Phase::Placement;
                 break;
             case Phase::Placement:
                 _phase = Phase::Running;
@@ -159,27 +185,55 @@ namespace Gungi
         }
     }
 
-    bool Game::_validPlacement(const AccessType& i, const Point3& spot) const
+    bool Game::_validPlacement(const AccessType& i, const Point3& spot, 
+            const Board::Orientation& o) const
     {
         if (_phase == Phase::Placement)
         {
-            if (spot.y >= VALID_PLACEMENT_LENGTH)
-                return false;
-            
+            std::cout << spot.x << ',' << spot.z << ',' << spot.y << std::endl;
             auto PieceSet = _currentPlayer->getFullSet();
             auto Piece = PieceSet[i];
-            if (Piece.getHead() == Head::Soldier)
+
+            if (o == Board::Orientation::Positive)
             {
-                for (auto i = 0u; i < VALID_PLACEMENT_LENGTH; ++i)
+                if (spot.z >= VALID_PLACEMENT_DEPTH)
+                    return false;
+
+                // Could be optimized worst-case @ O(n)
+                if (Piece.getHead() == Head::Soldier)
                 {
-                    Point3 tmp = { spot.x, i, spot.z };
-                    if (_gameBoard[tmp]->getHead() == Head::Soldier)
-                        return false;
+                    for (auto i = 0u; i < VALID_PLACEMENT_DEPTH; ++i)
+                    {
+                        for (auto j = 0u; j < BOARD_TIERS; ++j)
+                        {
+                            Point3 tmp = { spot.x, i, j };
+                            if (_gameBoard[tmp]->getHead() == Head::Soldier)
+                                return false;
+                        }
+                    }
                 }
             }
+            else
+            {
 
-            if (_gameBoard[spot]->isNull())
-                return true;
+                if (!(spot.z >= (BOARD_SIZE - VALID_PLACEMENT_DEPTH)
+                        && spot.z < BOARD_SIZE))
+                    return false; 
+
+                if (Piece.getHead() == Head::Soldier)
+                {
+                    for (auto i = (BOARD_SIZE - VALID_PLACEMENT_DEPTH); 
+                            i < BOARD_SIZE; ++i)
+                    {
+                        for (auto j = 0u; j < BOARD_TIERS; ++j)
+                        {
+                            Point3 tmp = { spot.x, i, j };
+                            if (_gameBoard[tmp]->getHead() == Head::Soldier)
+                                return false;
+                        }
+                    }
+                }
+            }
 
             if (_gameBoard.hasAnEmptyTier(spot))
                 return true;

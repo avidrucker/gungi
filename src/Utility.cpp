@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Utility.hpp"
+#include <Utility.hpp>
 
 namespace Gungi
 {
@@ -28,15 +28,15 @@ namespace Gungi
         return idx.y + idx.x * length; 
     }
 
-    size_t coorToIndex(const PointSize& x, const PointSize& y, const PointSize& z, 
-            const PointSize& width, const PointSize& length)
+    size_t coorToIndex(const PointSize& x, const PointSize& z, const PointSize& y, 
+            const PointSize& width, const PointSize& depth)
     {
-        return (z * width * length) + (y * width) + x;
+        return (y * width * depth) + (z * width) + y;
     }
 
-    size_t coorToIndex(const Point3& idx, const PointSize& width, const PointSize& length)
+    size_t coorToIndex(const Point3& idx, const PointSize& width, const PointSize& depth)
     {
-        return (idx.z * width * length) + (idx.y * width) + idx.x;
+        return (idx.y * width * depth) + (idx.z * width) + idx.x;
     }
 
 
@@ -47,7 +47,7 @@ namespace Gungi
 
     Point toXY(const Point3& idx)
     {
-        return Point(idx.x, idx.y);
+        return Point(idx.x, idx.z);
     }
 
     bool operator < (const Point& lhs, const Point& rhs)
@@ -69,13 +69,13 @@ namespace Gungi
         if (rhs.x < lhs.x)
             return false;
 
-        if (lhs.y < rhs.y)
+        if (lhs.z < rhs.z)
             return true;
 
-        if (rhs.y < lhs.y)
+        if (rhs.z < lhs.z)
             return false;
 
-        return lhs.z < rhs.z;
+        return lhs.y < rhs.y;
     }
 
     bool operator == (const Point& lhs, const Point& rhs)
@@ -85,6 +85,6 @@ namespace Gungi
 
     bool operator == (const Point3& lhs, const Point3& rhs)
     {
-        return (lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z);
+        return (lhs.x == rhs.x) && (lhs.z == rhs.z) && (lhs.y == rhs.y);
     }
 }

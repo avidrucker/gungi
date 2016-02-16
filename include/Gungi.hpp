@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include "Matrix.hpp"
-#include "MatrixManip.hpp"
-#include "Protocol.hpp"
-#include "Utility.hpp"
+        #include <iostream>
+#include <Matrix.hpp>
+#include <MatrixManip.hpp>
+#include <Protocol.hpp>
+#include <Utility.hpp>
 
 namespace Gungi
 {
@@ -28,10 +29,13 @@ namespace Gungi
         using Super = Matrix3<const IndexedPiece*>;
 
         public:
+            enum class Orientation : uint8_t
+            { Positive, Negative };
+
             Board();
-            
             bool hasAnEmptyTier(Point3 idx) const;
 
+            static Point3 convertIndex(const Orientation& o, const Point3& idx); 
             static const IndexedPiece NOT_A_PIECE;
     };
 
@@ -39,23 +43,26 @@ namespace Gungi
     {
         using AccessType = size_t;
         using SetType = StdPieceSet::SetType;
+        using Orientation = Board::Orientation;
 
         public:
             enum class Color : uint8_t { Black, White };
 
-            Player(Board& gameBoard, const Color& color);
-            Player(Board* gameBoard, const Color& color);
+            Player(Board& gameBoard, const Color& color, const Orientation& o);
+            Player(Board* gameBoard, const Color& color, const Orientation& o);
             const IndexedPiece& operator [] (const AccessType& i) const;
             const Point3& indexFor(const AccessType& i) const;
             void placeOnBoard(const AccessType& i, const Point3& spot);
             void move(const AccessType& idx, const Move& move); 
             const Color& getColor() const;
             const SetType& getFullSet() const;
+            const Orientation& getOrientation() const;
         private:
            StdPieceSet _pieces;
            Board* _gameBoard;
            Color _color;
            uint8_t _onHandCursor;
+           Orientation _orientation; 
     };
 
     class Game
@@ -70,14 +77,15 @@ namespace Gungi
             void start();
             const Board& gameBoard() const;
             const Player& currentPlayer() const;
-            void placeOnBoard(const AccessType& i, const Point3& spot);
+            bool placeOnBoard(const AccessType& i, const Point3& spot);
             void move(const AccessType& idx, const Move& move);
 
-            static constexpr uint8_t VALID_PLACEMENT_LENGTH = 3;
+            static constexpr uint8_t VALID_PLACEMENT_DEPTH = 3;
         private:
             void _flipPlayer();
             void _progressPhase();
-            bool _validPlacement(const AccessType& i, const Point3& spot) const;
+            bool _validPlacement(const AccessType& i, 
+                    const Point3& spot, const Board::Orientation& o) const;
             bool _running() const;
             bool _onesTurn;
             Board _gameBoard;

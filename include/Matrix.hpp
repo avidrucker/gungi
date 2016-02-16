@@ -16,7 +16,8 @@
 
 #pragma once
 
-#include "Utility.hpp"
+#include <Utility.hpp>
+#include <MatrixManip.hpp>
 
 namespace Gungi
 {
@@ -58,25 +59,197 @@ namespace Gungi
         using AccessType = Point3;
 
         public:
-            Matrix3(const SizeType& width, const SizeType& length, const SizeType& height);
-            Matrix3(const SizeType& width, const SizeType& length, 
+            Matrix3(const SizeType& width, const SizeType& depth, const SizeType& height);
+            Matrix3(const SizeType& width, const SizeType& depth, 
                     const SizeType& height, ConstRef initValue);
             ~Matrix3();
             SizeType getWidth() const;
-            SizeType getLength() const;
+            SizeType getDepth() const;
             SizeType getHeight() const;
             SizeType getSize() const;
             Ref operator [] (const SizeType& i);
             ConstRef operator [] (const SizeType& i) const;
             Ref operator [] (const AccessType& idx);
             ConstRef operator [] (const AccessType& idx) const;
-            Ref operator () (const SizeType& x, const SizeType& y, const SizeType& z);
-            ConstRef operator () (const SizeType& x, const SizeType& y, const SizeType& z) const;
+            Ref operator () (const SizeType& x, const SizeType& z, const SizeType& y);
+            ConstRef operator () (const SizeType& x, const SizeType& z, const SizeType& y) const;
 
         protected:
-            SizeType _width, _length, _height;
+            SizeType _width, _depth, _height;
             PtrType _matrix;
     };
-}
 
-#include "Matrix.cpp"
+    template <class T>
+    Matrix2<T>::Matrix2(const SizeType& width, const SizeType& length)
+    : _width  (width)
+    , _length (length)
+    , _matrix (new T[width * length])
+    {}
+
+    template <class T>
+    Matrix2<T>::Matrix2(const SizeType& width, const SizeType& length, ConstRef initValue)
+    : _width  (width)
+    , _length (length)
+    , _matrix (new T[width * length])
+    {
+        for (SizeType i = 0; i < getSize(); ++i)
+            _matrix[i] = initValue;
+    }
+
+    template <class T>
+    Matrix2<T>::~Matrix2()
+    {
+        if (_matrix != nullptr)
+        {
+            delete [] _matrix;
+            _matrix = nullptr;
+        }
+    }
+
+    template <class T>
+    typename Matrix2<T>::SizeType Matrix2<T>::getWidth() const
+    {
+        return _width;
+    }
+
+    template <class T>
+    typename Matrix2<T>::SizeType Matrix2<T>::getLength() const
+    {
+        return _length;
+    }
+
+    template <class T>
+    typename Matrix2<T>::SizeType Matrix2<T>::getSize() const
+    {
+        return _width * _length;
+    }
+    
+    template <class T>
+    typename Matrix2<T>::Ref Matrix2<T>::operator [] (const SizeType& i)
+    {
+        return _matrix[i];
+    }
+
+    template <class T>
+    typename Matrix2<T>::ConstRef Matrix2<T>::operator [] (const SizeType& i) const
+    {
+        return _matrix[i];
+    }
+
+    template <class T>
+    typename Matrix2<T>::Ref Matrix2<T>::operator [] (const AccessType& idx)
+    {
+        return _matrix[coorToIndex(idx, _length)];
+    }
+
+    template <class T>
+    typename Matrix2<T>::ConstRef Matrix2<T>::operator [] (const AccessType& idx) const
+    {
+        return _matrix[coorToIndex(idx , _length)];
+    }
+    
+    template <class T>
+    typename Matrix2<T>::Ref Matrix2<T>::operator () (const SizeType& x, const SizeType& y)
+    {
+        return _matrix[coorToIndex(x, y, _length)];
+    }
+
+    template <class T>
+    typename Matrix2<T>::ConstRef Matrix2<T>::operator () (const SizeType& x, const SizeType& y) const
+    {
+        return _matrix[coorToIndex(x, y, _length)];
+    }
+
+    template <class T>
+    Matrix3<T>::Matrix3
+        (const SizeType& width, const SizeType& depth, const SizeType& height)
+    : _width  (width)
+    , _depth  (depth)
+    , _height (height)
+    , _matrix (new T[width * depth * height])
+    {}
+
+    template <class T>
+    Matrix3<T>::Matrix3
+        (const SizeType& width, const SizeType& depth, const SizeType& height, ConstRef initValue)
+    : _width  (width)
+    , _depth  (depth)
+    , _height (height)
+    , _matrix (new T[width * depth * height])
+    {
+        for (SizeType i = 0u; i < getSize(); ++i)
+            _matrix[i] = initValue;
+    }
+
+    template <class T>
+    Matrix3<T>::~Matrix3()
+    {
+        if (_matrix != nullptr)
+        {
+            delete [] _matrix;
+            _matrix = nullptr;
+        }
+    }
+
+    template <class T>
+    typename Matrix3<T>::SizeType Matrix3<T>::getWidth() const
+    {
+        return _width;
+    }
+
+    template <class T>
+    typename Matrix3<T>::SizeType Matrix3<T>::getDepth() const
+    {
+        return _depth;
+    }
+
+    template <class T>
+    typename Matrix3<T>::SizeType Matrix3<T>::getHeight() const
+    {
+        return _height;
+    }
+
+    template <class T>
+    typename Matrix3<T>::SizeType Matrix3<T>::getSize() const
+    {
+        return _width * _depth * _height;
+    }
+
+    template <class T>
+    typename Matrix3<T>::Ref Matrix3<T>::operator [] (const SizeType& i)
+    {
+        return _matrix[i];
+    }
+
+    template <class T>
+    typename Matrix3<T>::ConstRef Matrix3<T>::operator [] (const SizeType& i) const
+    {
+        return _matrix[i];
+    }
+
+    template <class T>
+    typename Matrix3<T>::Ref Matrix3<T>::operator [] (const AccessType& idx)
+    {
+        return _matrix[coorToIndex(idx,_width,_depth)];
+    }
+
+    template <class T>
+    typename Matrix3<T>::ConstRef Matrix3<T>::operator [] (const AccessType& idx) const
+    {
+        return _matrix[coorToIndex(idx,_width,_depth)];
+    }
+
+    template <class T>
+    typename Matrix3<T>::Ref Matrix3<T>::operator () (const SizeType& x, 
+            const SizeType& z, const SizeType& y)
+    {
+        return _matrix[coorToIndex(x,z,y,_width,_depth)];
+    }
+    
+    template <class T>
+    typename Matrix3<T>::ConstRef Matrix3<T>::operator ()  
+        (const SizeType& x, const SizeType& z, const SizeType& y) const
+    {
+        return _matrix[coorToIndex(x,z,y,_width,_depth)];
+    }
+}

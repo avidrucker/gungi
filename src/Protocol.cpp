@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Protocol.hpp"
+#include <Protocol.hpp>
 
 namespace Gungi
 {

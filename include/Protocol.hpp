@@ -20,14 +20,14 @@
 #include <list>
 #include <array>
 
-#include "Matrix.hpp"
+#include <Matrix.hpp>
 
 namespace Gungi
 {
-    constexpr uint8_t BOARD_SIZE = 9;
-    constexpr uint8_t BOARD_TIERS = 3;
-    constexpr uint8_t NUM_FRONT_PIECES = 10;
-    constexpr uint8_t NUM_BACK_PIECES = 10; 
+    constexpr uint8_t BOARD_SIZE = 9u;
+    constexpr uint8_t BOARD_TIERS = 3u;
+    constexpr uint8_t NUM_FRONT_PIECES = 10u;
+    constexpr uint8_t NUM_BACK_PIECES = 10u;
 
     constexpr uint8_t INFINITE_RANGE = ~0;
 
@@ -151,6 +151,7 @@ namespace Gungi
         private:
             SetType _pieceSet;
     };
+
     
     uint8_t getHeadValue(const Piece& piece);
     uint8_t getTailValue(const Piece& piece);
@@ -227,14 +228,14 @@ namespace Gungi
                 break;
             case Direction::SE:
                 idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
-                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getDepth(), UNBOUND);
                 break;
             case Direction::S:
-                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getDepth(), UNBOUND);
                 break;
             case Direction::SW:
                 idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
-                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
+                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getDepth(), UNBOUND);
                 break;
             case Direction::W:
                 idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
