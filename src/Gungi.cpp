@@ -27,6 +27,19 @@ namespace Gungi
             _matrix[i] = &Board::NOT_A_PIECE;
     }
 
+    bool Board::hasAnEmptyTier(Point3 idx) const
+    {
+        bool emptyTier = false;
+        for (auto i = 0u; !emptyTier && i < BOARD_TIERS; ++i)
+        {
+            idx.z = i;
+            auto j = coorToIndex(idx, getWidth(), getLength());
+            if (_matrix[j]->isNull())
+                emptyTier = true; 
+        }
+        return emptyTier;
+    }
+
     Player::Player(Board& gameBoard, const Color& color)
     : _pieces       ()
     , _gameBoard    (&gameBoard)
@@ -108,7 +121,7 @@ namespace Gungi
 
     void Game::placeOnBoard(const AccessType& i, const Point3& spot)
     {
-        if (_phase != Phase::Standby && _validPlacement(_phase,i,spot))
+        if (_phase != Phase::Standby && _validPlacement(i, spot))
         {
             _currentPlayer->placeOnBoard(i, spot);
             _flipPlayer();
@@ -146,9 +159,37 @@ namespace Gungi
         }
     }
 
-    bool Game::_validPlacement(const Phase& phase, const AccessType& i, const Point3& spot) const
+    bool Game::_validPlacement(const AccessType& i, const Point3& spot) const
     {
-        return true;
+        if (_phase == Phase::Placement)
+        {
+            if (spot.y >= VALID_PLACEMENT_LENGTH)
+                return false;
+            
+            auto PieceSet = _currentPlayer->getFullSet();
+            auto Piece = PieceSet[i];
+            if (Piece.getHead() == Head::Soldier)
+            {
+                for (auto i = 0u; i < VALID_PLACEMENT_LENGTH; ++i)
+                {
+                    Point3 tmp = { spot.x, i, spot.z };
+                    if (_gameBoard[tmp]->getHead() == Head::Soldier)
+                        return false;
+                }
+            }
+
+            if (_gameBoard[spot]->isNull())
+                return true;
+
+            if (_gameBoard.hasAnEmptyTier(spot))
+                return true;
+
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     bool Game::_running() const

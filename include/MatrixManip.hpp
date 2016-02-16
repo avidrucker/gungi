@@ -90,7 +90,6 @@ namespace Gungi
             transFunc(matrix[i]);
     }
 
-    
     /**
      * State shifters ; Trail setters
      * Assuming 0,0 is top left corner

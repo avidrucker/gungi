@@ -29,6 +29,9 @@ namespace Gungi
 
         public:
             Board();
+            
+            bool hasAnEmptyTier(Point3 idx) const;
+
             static const IndexedPiece NOT_A_PIECE;
     };
 
@@ -69,10 +72,12 @@ namespace Gungi
             const Player& currentPlayer() const;
             void placeOnBoard(const AccessType& i, const Point3& spot);
             void move(const AccessType& idx, const Move& move);
+
+            static constexpr uint8_t VALID_PLACEMENT_LENGTH = 3;
         private:
             void _flipPlayer();
             void _progressPhase();
-            bool _validPlacement(const Phase& phase, const AccessType& i, const Point3& spot) const;
+            bool _validPlacement(const AccessType& i, const Point3& spot) const;
             bool _running() const;
             bool _onesTurn;
             Board _gameBoard;

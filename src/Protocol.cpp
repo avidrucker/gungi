@@ -684,5 +684,4 @@ namespace Gungi
         size_t res = lhs + rhs;
         return res < constraint ? res : overflow;
     }
-
 }
