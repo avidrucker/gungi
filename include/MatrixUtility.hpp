@@ -21,11 +21,19 @@
 namespace Gungi
 {
     template <class SizeType>
+    struct Point3;
+
+    template <class SizeType>
     struct Point2
     {
         Point2(const SizeType& a, const SizeType& b)
         : x (a)
         , y (b)
+        {}
+
+        Point2(const Point3<SizeType>& pt3)
+        : x (pt3.x)
+        , y (pt3.z)
         {}
 
         SizeType x, y;
@@ -38,6 +46,12 @@ namespace Gungi
         : x (a)
         , z (c)
         , y (b)
+        {}
+
+        Point3(const Point2<SizeType>& pt)
+        : x (pt.x)
+        , z (pt.y)
+        , y (0)
         {}
 
         SizeType x, z, y;

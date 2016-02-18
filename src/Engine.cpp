@@ -21,29 +21,32 @@ namespace Gungi
     Player::Player(Board* gameBoard, const Color& color, const Orientation& o)
     : _gameBoard    (gameBoard)
     , _color        (color)
-    , _onHandCursor (STD_PIECE_CT)
+//    , _onHandCursor (STD_PIECE_CT)
     , _orientation  (o)
     {
-       initPieceSet(_pieces);  
+       initPieceSet(_pieces);
     }
 
-    void Player::_makePositive(SmallPoint3& pt)
+    bool Player::drop(const AccessType& idx, const SmallPoint3& spot)
     {
-        pt.x = BOARD_WIDTH - pt.x;
-        pt.z = BOARD_DEPTH - pt.z;
+        return _place(idx, spot);
     }
 
-    void Player::placeOnBoard(const AccessType& i, SmallPoint3 pt)
+    bool Player::place(const AccessType& idx, const Move& move)
     {
-        if (_orientation == Orientation::Negative)
-            _makePositive(pt);
+        return true;
+    }
 
-        if ((*_gameBoard)[pt] == &NULL_PIECE)
-        {
-            (*_gameBoard)[pt] = &_pieces[i];
-            --_onHandCursor;
-            //_pieces.swap(i, _onHandCursor);
-        }
+    void Player::transfer(const AccessType& idx, Player& player)
+    {
+        nullifyAt(*_gameBoard, _pieces[idx].getIndex());
+        player.append(_pieces[idx]);
+        _pieces.erase(_pieces.cbegin() + idx);
+    }
+
+    void Player::append(const IndexedPiece& pc)
+    {
+        _pieces.push_back(pc); 
     }
 
     const IndexedPiece& Player::operator [] (const AccessType& i) const
@@ -54,14 +57,6 @@ namespace Gungi
     const SmallPoint3& Player::indexFor(const AccessType& i) const
     {
         return _pieces[i].getIndex();
-    }
-
-    void Player::move(const AccessType& idx, const Move& move)
-    {
-        auto currentSpot = indexFor(idx);
-        //auto newSpot = genIndexOf3DMove(*_gameBoard, indexFor(idx), move);
-        (*_gameBoard)[currentSpot] = &NULL_PIECE;
-        //(*_gameBoard)[newSpot] = &_pieces[idx]; 
     }
 
     const Player::Color& Player::getColor() const
@@ -79,22 +74,77 @@ namespace Gungi
         return _orientation;
     }
 
-    Game::Game()
-    : _onesTurn  (true)
-    , _gameBoard (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, nullptr)
-    , _one       (&_gameBoard, Player::Color::Black, Player::Orientation::Positive)
-    , _two       (&_gameBoard, Player::Color::White, Player::Orientation::Negative)
-    , _phase     (Phase::Standby)
+    void Player::_makePositive(SmallPoint3& pt)
     {
-        initBoard(_gameBoard);
+        pt.x = BOARD_WIDTH - pt.x;
+        pt.z = BOARD_DEPTH - pt.z;
     }
+
+    bool Player::_place(const AccessType& i, SmallPoint3 pt)
+    {
+        if (_orientation == Orientation::Negative)
+            _makePositive(pt);
+
+        if (!_pieces[i].isUnbounded())
+            nullifyAt(*_gameBoard, _pieces[i].getIndex()); 
+
+        auto tmp = _pieces[i].getIndex();
+        tmp.y = availableTierAt(*_gameBoard, pt); 
+        _pieces[i].setIndex(tmp);
+        if (_pieces[i].getIndex().y == NO_TIERS_FREE)
+            return false;
+        
+        placeAt(*_gameBoard, &_pieces[i]);
+        return true;
+    }
+
+    Phase& operator ++ (Phase& phase)
+    {
+        switch (phase)
+        {
+            case Phase::Standby:
+                phase = Phase::Placement;
+                return phase;
+            case Phase::Placement:
+                phase = Phase::Running;
+                return phase;
+            case Phase::Running:
+                phase = Phase::Placement;
+                return phase;
+        }
+    }
+
+    Phase& operator -- (Phase& phase)
+    {
+        switch (phase)
+        {
+            case Phase::Standby:
+                phase = Phase::Running;
+                return phase;
+            case Phase::Placement:
+                phase = Phase::Standby;
+                return phase;
+            case Phase::Running:
+                phase = Phase::Placement;
+                return phase;
+        }
+    }
+
+    Game::Game()
+    : _onesTurn      (true)
+    , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, &NULL_PIECE)
+    , _one           (&_gameBoard, Player::Color::Black, Player::Orientation::Positive)
+    , _two           (&_gameBoard, Player::Color::White, Player::Orientation::Negative)
+    , _phase         (Phase::Standby)
+    , _currentPlayer (nullptr)
+    {}
 
     void Game::start()
     {
         if (_phase == Phase::Standby)
         {
             _currentPlayer = &_one;
-            _progressPhase();
+            ++_phase;
         }
     }
 
@@ -103,9 +153,9 @@ namespace Gungi
         return _gameBoard;
     }
 
-    const Player& Game::currentPlayer() const
+    const Player* Game::currentPlayer() const
     {
-        return *_currentPlayer; 
+        return _currentPlayer; 
     }
 
     bool Game::placeOnBoard(const AccessType& i, const SmallPoint3& pt)
@@ -117,7 +167,7 @@ namespace Gungi
 
         if (_validPlacement(i, pt, _currentPlayer->getOrientation()))
         {
-            _currentPlayer->placeOnBoard(i, pt);
+            _currentPlayer->drop(i, pt);
             _flipPlayer();
             return true;
         }
@@ -129,7 +179,7 @@ namespace Gungi
     {
         if (_running())
         {
-            _currentPlayer->move(idx,move);
+            _currentPlayer->place(idx,move);
             _flipPlayer();
         }
     }
@@ -138,22 +188,6 @@ namespace Gungi
     {
         _currentPlayer = _onesTurn ? &_two : &_one;
         _onesTurn = !_onesTurn;
-    }
-
-    void Game::_progressPhase()
-    {
-        switch (_phase)
-        {
-            case Phase::Standby:
-                _phase = Phase::Placement;
-                break;
-            case Phase::Placement:
-                _phase = Phase::Running;
-                break;
-            case Phase::Running:
-                _phase = Phase::Standby;
-                break;
-        }
     }
 
     bool Game::_validPlacement(const AccessType& i, const SmallPoint3& spot, 

@@ -23,12 +23,13 @@
 
 namespace Gungi
 {
-    constexpr uint8_t BOARD_WIDTH  = 9;
-    constexpr uint8_t BOARD_DEPTH  = 9;
-    constexpr uint8_t BOARD_HEIGHT = 3;
-    constexpr uint8_t FRONT_PCS_CT = 10;
-    constexpr uint8_t BACK_PCS_CT  = 10;
-    constexpr uint8_t UNBOUNDED    = ~0;
+    constexpr uint8_t BOARD_WIDTH   = 9;
+    constexpr uint8_t BOARD_DEPTH   = 9;
+    constexpr uint8_t BOARD_HEIGHT  = 3;
+    constexpr uint8_t FRONT_PCS_CT  = 10;
+    constexpr uint8_t BACK_PCS_CT   = 10;
+    constexpr uint8_t UNBOUNDED     = ~0;
+    constexpr uint8_t NO_TIERS_FREE = ~0;
 
     using SmallPoint2 = Point2<uint8_t>;
     using SmallPoint3 = Point3<uint8_t>;
@@ -136,6 +137,8 @@ namespace Gungi
                     const SmallPoint3& idx = UBD_PT3);
             void setIndex(const SmallPoint3& idx);
             const SmallPoint3& getIndex() const;
+            bool isUnbounded() const;
+
             friend bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs);
             friend bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs);
             
@@ -180,8 +183,11 @@ namespace Gungi
 
     using Board = Matrix3<const IndexedPiece*, uint8_t>;
 
-    void initBoard(Board& board);
     bool isNullAt(const Board& board, const SmallPoint3& pt);
+    void nullifyAt(Board& board, const SmallPoint3& pt);
+    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt);
+    uint8_t availableTierAt(const Board& board, SmallPoint3 pt);
     bool hasOpenTierAt(const Board& board, const SmallPoint2& pt);
-    bool hasOpenTierAt(const Board& board, SmallPoint3 pt);
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt);
+    void placeAt(Board& board, const IndexedPiece* piece);
 }

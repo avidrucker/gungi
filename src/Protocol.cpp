@@ -29,8 +29,6 @@ namespace Gungi
             && pt.y == UNBOUNDED;
     }
 
-    // Move Class
-
     Move::Move(const MagnitudeType& magnitude, const Direction& direction)
     : _magnitude (magnitude)
     , _direction (direction)
@@ -97,9 +95,6 @@ namespace Gungi
         }
     }
 
-    // Piece class
-    //
-    
     Piece::Piece()
     : _head      (Head::None)
     , _tail      (Tail::None) 
@@ -162,6 +157,11 @@ namespace Gungi
         return _idx;
     }
 
+    bool IndexedPiece::isUnbounded() const
+    {
+        return _idx == UBD_PT3;
+    }
+
     bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs)
     {
         return lhs._idx < rhs._idx;
@@ -174,32 +174,31 @@ namespace Gungi
 
     void initPieceSet(PieceSet& pieceSet)
     {
-       pieceSet[0]  = IndexedPiece(Head::Commander);
-       pieceSet[1]  = IndexedPiece(Head::Captain, Tail::Pistol);
-       pieceSet[2]  = IndexedPiece(Head::Captain, Tail::Pistol);
-       pieceSet[3]  = IndexedPiece(Head::Samurai, Tail::Pike);
-       pieceSet[4]  = IndexedPiece(Head::Samurai, Tail::Pike);
-       pieceSet[5]  = IndexedPiece(Head::Ninja, Tail::Jounin);
-       pieceSet[6]  = IndexedPiece(Head::Ninja, Tail::Jounin);
-       pieceSet[7]  = IndexedPiece(Head::Ninja, Tail::Jounin);
-       pieceSet[8]  = IndexedPiece(Head::Catapult, Tail::Lance);
-       pieceSet[9]  = IndexedPiece(Head::Fortress, Tail::Lance);
-       pieceSet[10] = IndexedPiece(Head::HiddenDragon, Tail::DragonKing);
-       pieceSet[11] = IndexedPiece(Head::Prodigy, Tail::Phoenix);
-       pieceSet[12] = IndexedPiece(Head::Archer, Tail::Arrow);
-       pieceSet[13] = IndexedPiece(Head::Archer, Tail::Arrow);
-       pieceSet[14] = IndexedPiece(Head::Soldier, Tail::Gold);
-       pieceSet[15] = IndexedPiece(Head::Soldier, Tail::Silver);
-       pieceSet[16] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       pieceSet[17] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       pieceSet[18] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       pieceSet[19] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       pieceSet[20] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       pieceSet[21] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       pieceSet[22] = IndexedPiece(Head::Soldier, Tail::Bronze);
+       pieceSet.push_back(IndexedPiece(Head::Commander));
+       pieceSet.push_back(IndexedPiece(Head::Captain, Tail::Pistol));
+       pieceSet.push_back(IndexedPiece(Head::Captain, Tail::Pistol));
+       pieceSet.push_back(IndexedPiece(Head::Samurai, Tail::Pike));
+       pieceSet.push_back(IndexedPiece(Head::Samurai, Tail::Pike));
+       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
+       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
+       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
+       pieceSet.push_back(IndexedPiece(Head::Catapult, Tail::Lance));
+       pieceSet.push_back(IndexedPiece(Head::Fortress, Tail::Lance));
+       pieceSet.push_back(IndexedPiece(Head::HiddenDragon, Tail::DragonKing));
+       pieceSet.push_back(IndexedPiece(Head::Prodigy, Tail::Phoenix));
+       pieceSet.push_back(IndexedPiece(Head::Archer, Tail::Arrow));
+       pieceSet.push_back(IndexedPiece(Head::Archer, Tail::Arrow));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Gold));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Silver));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
     }
     
-    //Free functions
     RankSize getHeadValue(const Piece& piece)
     {
         switch (piece.getHead())
@@ -687,36 +686,51 @@ namespace Gungi
         return moveset;
     }
 
-    void initBoard(Board& board)
-    {
-        for (decltype (board.getSize()) i = 0; i < board.getSize(); ++i)
-            board[i] = &NULL_PIECE;
-    }
-
     bool isNullAt(const Board& board, const SmallPoint3& pt)
     {
         return board[pt] == &NULL_PIECE;
     }
-    
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt)
+
+    void nullifyAt(Board& board, const SmallPoint3& pt)
     {
-        for (decltype (board.getHeight()) i = 0; i < board.getHeight(); ++i)
-        {
-            SmallPoint3 tmp { pt.x, pt.y, i };
-            if (isNullAt(board, tmp))
-                return true;
-        }
-        return false;
+        board[pt] = &NULL_PIECE;
+    }
+    
+    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt)
+    {
+        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
+            if (isNullAt(board, SmallPoint3(pt.x, pt.y, i)))
+                return i;
+        return NO_TIERS_FREE;
     }
 
-    bool hasOpenTierAt(const Board& board, SmallPoint3 pt)
+    uint8_t availableTierAt(const Board& board, SmallPoint3 pt)
     {
-        for (decltype (board.getHeight()) i = 0; i < board.getHeight(); ++i)
+        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
         {
             pt.y = i;
             if (isNullAt(board, pt))
-                return true;
+                    return i;
         }
-        return false;
+        return NO_TIERS_FREE;
+    }
+    
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt)
+    {
+        if (availableTierAt(board, pt) == NO_TIERS_FREE)
+            return false;
+        return true;
+    }
+
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt)
+    {
+        if (availableTierAt(board, pt) == NO_TIERS_FREE)
+            return false;
+        return true;
+    }
+
+    void placeAt(Board& board, const IndexedPiece* piece)
+    {
+        board[piece->getIndex()] = piece;
     }
 }
