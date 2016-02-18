@@ -16,78 +16,70 @@
 
 #pragma once
 
-        #include <iostream>
+#include <iostream> // For Debugging
 #include <Matrix.hpp>
-#include <MatrixManip.hpp>
 #include <Protocol.hpp>
-#include <Utility.hpp>
 
 namespace Gungi
 {
-    class Board : public Matrix3<const IndexedPiece*>
+
+    class Player
     {
-        using Super = Matrix3<const IndexedPiece*>;
+        using AccessType = uint8_t;
 
         public:
             enum class Orientation : uint8_t
             { Positive, Negative };
 
-            Board();
-            bool hasAnEmptyTier(Point3 idx) const;
+            enum class Color : uint8_t { Black, White }; //Could grow
 
-            static Point3 convertIndex(const Orientation& o, const Point3& idx); 
-            static const IndexedPiece NOT_A_PIECE;
-    };
-
-    class Player
-    {
-        using AccessType = size_t;
-        using SetType = StdPieceSet::SetType;
-        using Orientation = Board::Orientation;
-
-        public:
-            enum class Color : uint8_t { Black, White };
-
-            Player(Board& gameBoard, const Color& color, const Orientation& o);
             Player(Board* gameBoard, const Color& color, const Orientation& o);
+            bool drop(const AccessType& idx, const SmallPoint3& spot);
+            bool place(const AccessType& idx, const Move& move);
+            void transfer(const AccessType& idx, Player& player);
+            void append(const IndexedPiece& pc);
             const IndexedPiece& operator [] (const AccessType& i) const;
-            const Point3& indexFor(const AccessType& i) const;
-            void placeOnBoard(const AccessType& i, const Point3& spot);
-            void move(const AccessType& idx, const Move& move); 
+            const SmallPoint3& indexFor(const AccessType& i) const;
             const Color& getColor() const;
-            const SetType& getFullSet() const;
+            const PieceSet& getFullSet() const;
             const Orientation& getOrientation() const;
         private:
-           StdPieceSet _pieces;
-           Board* _gameBoard;
-           Color _color;
-           uint8_t _onHandCursor;
-           Orientation _orientation; 
+            void _makePositive(SmallPoint3& pt);
+            bool _place(const AccessType& i, SmallPoint3 spot);
+
+            PieceSet _pieces;
+            Board* _gameBoard;
+            Color _color;
+            //uint8_t _onHandCursor;
+            Orientation _orientation; 
     };
+
+    enum class Phase : uint8_t
+    { Standby, Placement, Running };
+        
+    Phase& operator ++ (Phase& phase);
+    Phase& operator -- (Phase& phase);
 
     class Game
     {
         using AccessType = size_t;
-
-        enum class Phase : uint8_t
-        { Standby, Placement, Running };
-
+    
         public:
             Game();
             void start();
             const Board& gameBoard() const;
-            const Player& currentPlayer() const;
-            bool placeOnBoard(const AccessType& i, const Point3& spot);
+            const Player* currentPlayer() const;
+            bool placeOnBoard(const AccessType& i, const SmallPoint3& spot);
             void move(const AccessType& idx, const Move& move);
 
             static constexpr uint8_t VALID_PLACEMENT_DEPTH = 3;
         private:
             void _flipPlayer();
-            void _progressPhase();
             bool _validPlacement(const AccessType& i, 
-                    const Point3& spot, const Board::Orientation& o) const;
+                    const SmallPoint3& spot, const Player::Orientation& o) const;
             bool _running() const;
             bool _onesTurn;
+
             Board _gameBoard;
             Player _one;
             Player _two;

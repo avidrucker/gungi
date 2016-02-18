@@ -18,7 +18,16 @@
 
 namespace Gungi
 {
-    // Move Class
+    bool isUnbounded(const SmallPoint2& pt)
+    {
+        return pt.x == UNBOUNDED && pt.y == UNBOUNDED;
+    }
+
+    bool isUnbounded(const SmallPoint3& pt)
+    {
+        return pt.x == UNBOUNDED && pt.z == UNBOUNDED
+            && pt.y == UNBOUNDED;
+    }
 
     Move::Move(const MagnitudeType& magnitude, const Direction& direction)
     : _magnitude (magnitude)
@@ -54,9 +63,38 @@ namespace Gungi
         return _next;
     }
 
-    // Piece class
-    //
-    
+    Tier& operator ++(Tier& tier)
+    {
+        switch (tier)
+        {
+            case Tier::One:
+                tier = Tier::Two;
+                return tier;
+            case Tier::Two:
+                tier = Tier::Three;
+                return tier;
+            case Tier::Three:
+                tier = Tier::One;
+                return tier;
+        }
+    }
+
+    Tier& operator --(Tier& tier)
+    {
+        switch (tier)
+        {
+            case Tier::One:
+                tier = Tier::Three;
+                return tier;
+            case Tier::Two:
+                tier = Tier::One;
+                return tier;
+            case Tier::Three:
+                tier = Tier::Two;
+                return tier;
+        }
+    }
+
     Piece::Piece()
     : _head      (Head::None)
     , _tail      (Tail::None) 
@@ -101,22 +139,27 @@ namespace Gungi
 
     IndexedPiece::IndexedPiece()
     : Piece ()
-    , _idx  ()
+    , _idx  (UBD_PT3)
     {}
 
-    IndexedPiece::IndexedPiece(const Head& head, const Tail& tail, const IndexingType& idx)
+    IndexedPiece::IndexedPiece(const Head& head, const Tail& tail, const SmallPoint3& idx)
     : Piece (head, tail)
     , _idx  (idx)
     {}
 
-    void IndexedPiece::setIndex(const IndexingType& idx)
+    void IndexedPiece::setIndex(const SmallPoint3& idx)
     {
         _idx = idx;
     }
 
-    const IndexedPiece::IndexingType& IndexedPiece::getIndex() const
+    const SmallPoint3& IndexedPiece::getIndex() const
     {
         return _idx;
+    }
+
+    bool IndexedPiece::isUnbounded() const
+    {
+        return _idx == UBD_PT3;
     }
 
     bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs)
@@ -129,60 +172,34 @@ namespace Gungi
         return (lhs._idx == rhs._idx) && (lhs._head == rhs._head) && (lhs._tail == rhs._tail);
     }
 
-    StdPieceSet::StdPieceSet()
+    void initPieceSet(PieceSet& pieceSet)
     {
-       _pieceSet[0]  = IndexedPiece(Head::Commander);
-       _pieceSet[1]  = IndexedPiece(Head::Captain, Tail::Pistol);
-       _pieceSet[2]  = IndexedPiece(Head::Captain, Tail::Pistol);
-       _pieceSet[3]  = IndexedPiece(Head::Samurai, Tail::Pike);
-       _pieceSet[4]  = IndexedPiece(Head::Samurai, Tail::Pike);
-       _pieceSet[5]  = IndexedPiece(Head::Ninja, Tail::Jounin);
-       _pieceSet[6]  = IndexedPiece(Head::Ninja, Tail::Jounin);
-       _pieceSet[7]  = IndexedPiece(Head::Ninja, Tail::Jounin);
-       _pieceSet[8]  = IndexedPiece(Head::Catapult, Tail::Lance);
-       _pieceSet[9]  = IndexedPiece(Head::Fortress, Tail::Lance);
-       _pieceSet[10] = IndexedPiece(Head::HiddenDragon, Tail::DragonKing);
-       _pieceSet[11] = IndexedPiece(Head::Prodigy, Tail::Phoenix);
-       _pieceSet[12] = IndexedPiece(Head::Archer, Tail::Arrow);
-       _pieceSet[13] = IndexedPiece(Head::Archer, Tail::Arrow);
-       _pieceSet[14] = IndexedPiece(Head::Soldier, Tail::Gold);
-       _pieceSet[15] = IndexedPiece(Head::Soldier, Tail::Silver);
-       _pieceSet[16] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       _pieceSet[17] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       _pieceSet[18] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       _pieceSet[19] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       _pieceSet[20] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       _pieceSet[21] = IndexedPiece(Head::Soldier, Tail::Bronze);
-       _pieceSet[22] = IndexedPiece(Head::Soldier, Tail::Bronze);
-    }
-
-    IndexedPiece& StdPieceSet::operator [] (const AccessType& i)
-    {
-        return _pieceSet[i];
-    }
-
-    const IndexedPiece& StdPieceSet::operator [] (const AccessType& i) const
-    {
-        return _pieceSet[i];
-    }
-
-    void StdPieceSet::swap(const AccessType& a, const AccessType& b)
-    {
-        if (a != b)
-        {
-            auto tmp = _pieceSet[a];
-            _pieceSet[a] = _pieceSet[b];
-            _pieceSet[b] = tmp;
-        }
-    }
-
-    const StdPieceSet::SetType& StdPieceSet::showSet() const
-    {
-        return _pieceSet;
+       pieceSet.push_back(IndexedPiece(Head::Commander));
+       pieceSet.push_back(IndexedPiece(Head::Captain, Tail::Pistol));
+       pieceSet.push_back(IndexedPiece(Head::Captain, Tail::Pistol));
+       pieceSet.push_back(IndexedPiece(Head::Samurai, Tail::Pike));
+       pieceSet.push_back(IndexedPiece(Head::Samurai, Tail::Pike));
+       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
+       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
+       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
+       pieceSet.push_back(IndexedPiece(Head::Catapult, Tail::Lance));
+       pieceSet.push_back(IndexedPiece(Head::Fortress, Tail::Lance));
+       pieceSet.push_back(IndexedPiece(Head::HiddenDragon, Tail::DragonKing));
+       pieceSet.push_back(IndexedPiece(Head::Prodigy, Tail::Phoenix));
+       pieceSet.push_back(IndexedPiece(Head::Archer, Tail::Arrow));
+       pieceSet.push_back(IndexedPiece(Head::Archer, Tail::Arrow));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Gold));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Silver));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
     }
     
-    //Free functions
-    uint8_t getHeadValue(const Piece& piece)
+    RankSize getHeadValue(const Piece& piece)
     {
         switch (piece.getHead())
         {
@@ -209,7 +226,7 @@ namespace Gungi
         }
     }
 
-    uint8_t getTailValue(const Piece& piece)
+    RankSize getTailValue(const Piece& piece)
     {
         switch (piece.getTail())
         {
@@ -331,10 +348,10 @@ namespace Gungi
     {
         if (tier == Tier::One)
         {
-            moveset.emplace_back(INFINITE_RANGE, Direction::N);
-            moveset.emplace_back(INFINITE_RANGE, Direction::E);
-            moveset.emplace_back(INFINITE_RANGE, Direction::S);
-            moveset.emplace_back(INFINITE_RANGE, Direction::W);
+            moveset.emplace_back(UNBOUNDED, Direction::N);
+            moveset.emplace_back(UNBOUNDED, Direction::E);
+            moveset.emplace_back(UNBOUNDED, Direction::S);
+            moveset.emplace_back(UNBOUNDED, Direction::W);
         }
         else
         {
@@ -349,10 +366,10 @@ namespace Gungi
     {
         if (tier == Tier::One)
         {
-            moveset.emplace_back(INFINITE_RANGE, Direction::NW);
-            moveset.emplace_back(INFINITE_RANGE, Direction::NE);
-            moveset.emplace_back(INFINITE_RANGE, Direction::SE);
-            moveset.emplace_back(INFINITE_RANGE, Direction::SW);
+            moveset.emplace_back(UNBOUNDED, Direction::NW);
+            moveset.emplace_back(UNBOUNDED, Direction::NE);
+            moveset.emplace_back(UNBOUNDED, Direction::SE);
+            moveset.emplace_back(UNBOUNDED, Direction::SW);
         }
         else
         {
@@ -415,13 +432,13 @@ namespace Gungi
         if (tier == Tier::One)
         {
             moveset.emplace_back(1, Direction::NW);
-            moveset.emplace_back(INFINITE_RANGE, Direction::N);
+            moveset.emplace_back(UNBOUNDED, Direction::N);
             moveset.emplace_back(1, Direction::NE);
-            moveset.emplace_back(INFINITE_RANGE, Direction::E);
+            moveset.emplace_back(UNBOUNDED, Direction::E);
             moveset.emplace_back(1, Direction::SE);
-            moveset.emplace_back(INFINITE_RANGE, Direction::S);
+            moveset.emplace_back(UNBOUNDED, Direction::S);
             moveset.emplace_back(1, Direction::SW);
-            moveset.emplace_back(INFINITE_RANGE, Direction::W);
+            moveset.emplace_back(UNBOUNDED, Direction::W);
         }
         else
         {
@@ -436,7 +453,7 @@ namespace Gungi
     {
         if (tier == Tier::One)
         {
-            moveset.emplace_back(INFINITE_RANGE, Direction::N);
+            moveset.emplace_back(UNBOUNDED, Direction::N);
         }
         else
         {
@@ -451,13 +468,13 @@ namespace Gungi
     {
         if (tier == Tier::One)
         {
-            moveset.emplace_back(INFINITE_RANGE, Direction::NW);
+            moveset.emplace_back(UNBOUNDED, Direction::NW);
             moveset.emplace_back(1, Direction::N);
-            moveset.emplace_back(INFINITE_RANGE, Direction::NE);
+            moveset.emplace_back(UNBOUNDED, Direction::NE);
             moveset.emplace_back(1, Direction::E);
-            moveset.emplace_back(INFINITE_RANGE, Direction::SE);
+            moveset.emplace_back(UNBOUNDED, Direction::SE);
             moveset.emplace_back(1, Direction::S);
-            moveset.emplace_back(INFINITE_RANGE, Direction::SW);
+            moveset.emplace_back(UNBOUNDED, Direction::SW);
             moveset.emplace_back(1, Direction::W);
         }
         else
@@ -666,22 +683,54 @@ namespace Gungi
             default:
                 return moveset;
         }
-
         return moveset;
     }
 
-    size_t OverflowSub(const size_t& lhs, const size_t& rhs, const size_t& overflow)
+    bool isNullAt(const Board& board, const SmallPoint3& pt)
     {
-        if (lhs < rhs)
-            return overflow;
-        else
-            return lhs - rhs;
+        return board[pt] == &NULL_PIECE;
     }
 
-    size_t OverflowAdd(const size_t& lhs, const size_t& rhs, 
-            const size_t& constraint, const size_t& overflow)
+    void nullifyAt(Board& board, const SmallPoint3& pt)
     {
-        size_t res = lhs + rhs;
-        return res < constraint ? res : overflow;
+        board[pt] = &NULL_PIECE;
+    }
+    
+    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt)
+    {
+        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
+            if (isNullAt(board, SmallPoint3(pt.x, pt.y, i)))
+                return i;
+        return NO_TIERS_FREE;
+    }
+
+    uint8_t availableTierAt(const Board& board, SmallPoint3 pt)
+    {
+        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
+        {
+            pt.y = i;
+            if (isNullAt(board, pt))
+                    return i;
+        }
+        return NO_TIERS_FREE;
+    }
+    
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt)
+    {
+        if (availableTierAt(board, pt) == NO_TIERS_FREE)
+            return false;
+        return true;
+    }
+
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt)
+    {
+        if (availableTierAt(board, pt) == NO_TIERS_FREE)
+            return false;
+        return true;
+    }
+
+    void placeAt(Board& board, const IndexedPiece* piece)
+    {
+        board[piece->getIndex()] = piece;
     }
 }
