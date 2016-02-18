@@ -14,66 +14,35 @@
  * limitations under the License.
  */
 
-#include <Gungi.hpp>
+#include <Engine.hpp>
 
 namespace Gungi
 {
-    const IndexedPiece Board::NOT_A_PIECE { Head::None, Tail::None };
-
-    Board::Board()
-    : Super (BOARD_SIZE, BOARD_SIZE, BOARD_TIERS)
-    {
-        for (decltype (getSize()) i = 0; i < getSize(); ++i)
-            _matrix[i] = &Board::NOT_A_PIECE;
-    }
-
-    bool Board::hasAnEmptyTier(Point3 idx) const
-    {
-        bool emptyTier = false;
-        for (auto i = 0u; !emptyTier && i < BOARD_TIERS; ++i)
-        {
-            idx.z = i;
-            auto j = coorToIndex(idx, getWidth(), getDepth());
-            if (_matrix[j]->isNull())
-                emptyTier = true; 
-        }
-        return emptyTier;
-    }
-
-    Point3 Board::convertIndex(const Orientation& o, const Point3& idx)
-    {
-        if (o == Orientation::Positive) // I know, what's the point of having the function
-            return idx;
-        
-        auto pt = idx;
-        pt.x = BOARD_SIZE - idx.x;
-        pt.z = BOARD_SIZE - idx.z;
-        return pt;
-    }
-
-    Player::Player(Board& gameBoard, const Color& color, const Orientation& o)
-    : _pieces       ()
-    , _gameBoard    (&gameBoard)
-    , _color        (color)
-    , _onHandCursor (STD_PIECE_CT)
-    , _orientation  (o)
-    {}
-
     Player::Player(Board* gameBoard, const Color& color, const Orientation& o)
-    : _pieces       ()
-    , _gameBoard    (gameBoard)
+    : _gameBoard    (gameBoard)
     , _color        (color)
     , _onHandCursor (STD_PIECE_CT)
     , _orientation  (o)
-    {}
-
-    void Player::placeOnBoard(const AccessType& i, const Point3& spot)
     {
-        if ((*_gameBoard)[spot] == &Board::NOT_A_PIECE)
+       initPieceSet(_pieces);  
+    }
+
+    void Player::_makePositive(SmallPoint3& pt)
+    {
+        pt.x = BOARD_WIDTH - pt.x;
+        pt.z = BOARD_DEPTH - pt.z;
+    }
+
+    void Player::placeOnBoard(const AccessType& i, SmallPoint3 pt)
+    {
+        if (_orientation == Orientation::Negative)
+            _makePositive(pt);
+
+        if ((*_gameBoard)[pt] == &NULL_PIECE)
         {
-            (*_gameBoard)[spot] = &_pieces[i];
+            (*_gameBoard)[pt] = &_pieces[i];
             --_onHandCursor;
-            _pieces.swap(i, _onHandCursor);          
+            //_pieces.swap(i, _onHandCursor);
         }
     }
 
@@ -82,7 +51,7 @@ namespace Gungi
         return _pieces[i];
     }
 
-    const Point3& Player::indexFor(const AccessType& i) const
+    const SmallPoint3& Player::indexFor(const AccessType& i) const
     {
         return _pieces[i].getIndex();
     }
@@ -90,9 +59,9 @@ namespace Gungi
     void Player::move(const AccessType& idx, const Move& move)
     {
         auto currentSpot = indexFor(idx);
-        auto newSpot = genIndexOf3DMove(*_gameBoard, indexFor(idx), move);
-        (*_gameBoard)[currentSpot] = &Board::NOT_A_PIECE;
-        (*_gameBoard)[newSpot] = &_pieces[idx]; 
+        //auto newSpot = genIndexOf3DMove(*_gameBoard, indexFor(idx), move);
+        (*_gameBoard)[currentSpot] = &NULL_PIECE;
+        //(*_gameBoard)[newSpot] = &_pieces[idx]; 
     }
 
     const Player::Color& Player::getColor() const
@@ -100,9 +69,9 @@ namespace Gungi
         return _color;
     }
 
-    const Player::SetType& Player::getFullSet() const
+    const PieceSet& Player::getFullSet() const
     {
-        return _pieces.showSet();
+        return _pieces;
     }
 
     const Player::Orientation& Player::getOrientation() const
@@ -111,12 +80,14 @@ namespace Gungi
     }
 
     Game::Game()
-    : _onesTurn      (true)
-    , _gameBoard     (Board())
-    , _one           (&_gameBoard, Player::Color::Black, Board::Orientation::Positive)
-    , _two           (&_gameBoard, Player::Color::White, Board::Orientation::Negative)
-    , _phase         (Phase::Standby)
-    {}
+    : _onesTurn  (true)
+    , _gameBoard (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, nullptr)
+    , _one       (&_gameBoard, Player::Color::Black, Player::Orientation::Positive)
+    , _two       (&_gameBoard, Player::Color::White, Player::Orientation::Negative)
+    , _phase     (Phase::Standby)
+    {
+        initBoard(_gameBoard);
+    }
 
     void Game::start()
     {
@@ -137,12 +108,12 @@ namespace Gungi
         return *_currentPlayer; 
     }
 
-    bool Game::placeOnBoard(const AccessType& i, const Point3& spot)
+    bool Game::placeOnBoard(const AccessType& i, const SmallPoint3& pt)
     {
         if (_phase == Phase::Standby)
             return false;
 
-        auto pt = Board::convertIndex(_currentPlayer->getOrientation(), spot);
+        //auto pt = Board::convertIndex(_currentPlayer->getOrientation(), spot);
 
         if (_validPlacement(i, pt, _currentPlayer->getOrientation()))
         {
@@ -185,8 +156,8 @@ namespace Gungi
         }
     }
 
-    bool Game::_validPlacement(const AccessType& i, const Point3& spot, 
-            const Board::Orientation& o) const
+    bool Game::_validPlacement(const AccessType& i, const SmallPoint3& spot, 
+            const Player::Orientation& o) const
     {
         if (_phase == Phase::Placement)
         {
@@ -194,7 +165,7 @@ namespace Gungi
             auto PieceSet = _currentPlayer->getFullSet();
             auto Piece = PieceSet[i];
 
-            if (o == Board::Orientation::Positive)
+            if (o == Player::Orientation::Positive)
             {
                 if (spot.z >= VALID_PLACEMENT_DEPTH)
                     return false;
@@ -204,9 +175,9 @@ namespace Gungi
                 {
                     for (auto i = 0u; i < VALID_PLACEMENT_DEPTH; ++i)
                     {
-                        for (auto j = 0u; j < BOARD_TIERS; ++j)
+                        for (auto j = 0u; j < BOARD_HEIGHT; ++j)
                         {
-                            Point3 tmp = { spot.x, i, j };
+                            SmallPoint3 tmp = { spot.x, i, j };
                             if (_gameBoard[tmp]->getHead() == Head::Soldier)
                                 return false;
                         }
@@ -215,19 +186,18 @@ namespace Gungi
             }
             else
             {
-
-                if (!(spot.z >= (BOARD_SIZE - VALID_PLACEMENT_DEPTH)
-                        && spot.z < BOARD_SIZE))
+                if (!(spot.z >= (BOARD_DEPTH - VALID_PLACEMENT_DEPTH)
+                        && spot.z < BOARD_DEPTH))
                     return false; 
 
                 if (Piece.getHead() == Head::Soldier)
                 {
-                    for (auto i = (BOARD_SIZE - VALID_PLACEMENT_DEPTH); 
-                            i < BOARD_SIZE; ++i)
+                    for (auto i = (BOARD_DEPTH - VALID_PLACEMENT_DEPTH); 
+                            i < BOARD_DEPTH; ++i)
                     {
-                        for (auto j = 0u; j < BOARD_TIERS; ++j)
+                        for (auto j = 0u; j < BOARD_HEIGHT; ++j)
                         {
-                            Point3 tmp = { spot.x, i, j };
+                            SmallPoint3 tmp = { spot.x, i, j };
                             if (_gameBoard[tmp]->getHead() == Head::Soldier)
                                 return false;
                         }
@@ -235,8 +205,8 @@ namespace Gungi
                 }
             }
 
-            if (_gameBoard.hasAnEmptyTier(spot))
-                return true;
+            //if (_gameBoard.hasAnEmptyTier(spot))
+             //   return true;
 
             return false;
         }

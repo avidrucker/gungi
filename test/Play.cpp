@@ -1,7 +1,7 @@
 #include <iostream>
 #include <ctime>
 
-#include <Gungi.hpp>
+#include <Engine.hpp>
 
 /**
  * Notes:
@@ -35,31 +35,30 @@ int main()
 
     Game game;
     game.start();
-    cout << sizeof (Piece) << endl
-    << sizeof (size_t) << endl
-    << sizeof (Point3) << endl
-    << sizeof (IndexedPiece) << endl;
+    /*
+        cout << sizeof (Piece) << endl
+        << sizeof (size_t) << endl
+        << sizeof (Point3) << endl
+        << sizeof (IndexedPiece) << endl;
+    */
     for (auto i = 0u; i < 23; ++i)
     {
         size_t x;
         size_t y;
         size_t z; 
-        Point3 pt;
-        do
-        {
-            x = rand() % 9;
-            y = 0;;
-            z = rand() % 3;
-            pt = Point3(x,z,y);
-        } while (!game.placeOnBoard(i, pt));
-        
-        do
-        {
-            x = rand() % 9;
-            y = 0;
-            z = rand() % 3 + 6;
-            pt = Point3(x,z,y);
-        } while (!game.placeOnBoard(i, pt));
+        SmallPoint3 pt { UNBOUNDED, UNBOUNDED, UNBOUNDED };
+
+        x = rand() % 9;
+        y = 0;;
+        z = rand() % 3;
+        pt = SmallPoint3(x,z,y);
+        game.placeOnBoard(i, pt);
+    
+        x = rand() % 9;
+        y = 0;
+        z = rand() % 3 + 6;
+        pt = SmallPoint3(x,z,y);
+        game.placeOnBoard(i, pt);
     }
     const Board* board = &game.gameBoard();
     displayBoard(*board);

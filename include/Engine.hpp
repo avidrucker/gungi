@@ -16,53 +16,39 @@
 
 #pragma once
 
-        #include <iostream>
+#include <iostream> // For Debugging
 #include <Matrix.hpp>
-#include <MatrixManip.hpp>
 #include <Protocol.hpp>
-#include <Utility.hpp>
 
 namespace Gungi
 {
-    class Board : public Matrix3<const IndexedPiece*>
+
+    class Player
     {
-        using Super = Matrix3<const IndexedPiece*>;
+        using AccessType = uint8_t;
 
         public:
             enum class Orientation : uint8_t
             { Positive, Negative };
 
-            Board();
-            bool hasAnEmptyTier(Point3 idx) const;
-
-            static Point3 convertIndex(const Orientation& o, const Point3& idx); 
-            static const IndexedPiece NOT_A_PIECE;
-    };
-
-    class Player
-    {
-        using AccessType = size_t;
-        using SetType = StdPieceSet::SetType;
-        using Orientation = Board::Orientation;
-
-        public:
             enum class Color : uint8_t { Black, White };
 
-            Player(Board& gameBoard, const Color& color, const Orientation& o);
             Player(Board* gameBoard, const Color& color, const Orientation& o);
             const IndexedPiece& operator [] (const AccessType& i) const;
-            const Point3& indexFor(const AccessType& i) const;
-            void placeOnBoard(const AccessType& i, const Point3& spot);
+            const SmallPoint3& indexFor(const AccessType& i) const;
+            void placeOnBoard(const AccessType& i, SmallPoint3 spot);
             void move(const AccessType& idx, const Move& move); 
             const Color& getColor() const;
-            const SetType& getFullSet() const;
+            const PieceSet& getFullSet() const;
             const Orientation& getOrientation() const;
         private:
-           StdPieceSet _pieces;
-           Board* _gameBoard;
-           Color _color;
-           uint8_t _onHandCursor;
-           Orientation _orientation; 
+            void _makePositive(SmallPoint3& pt);
+
+            PieceSet _pieces;
+            Board* _gameBoard;
+            Color _color;
+            uint8_t _onHandCursor;
+            Orientation _orientation; 
     };
 
     class Game
@@ -77,7 +63,7 @@ namespace Gungi
             void start();
             const Board& gameBoard() const;
             const Player& currentPlayer() const;
-            bool placeOnBoard(const AccessType& i, const Point3& spot);
+            bool placeOnBoard(const AccessType& i, const SmallPoint3& spot);
             void move(const AccessType& idx, const Move& move);
 
             static constexpr uint8_t VALID_PLACEMENT_DEPTH = 3;
@@ -85,9 +71,10 @@ namespace Gungi
             void _flipPlayer();
             void _progressPhase();
             bool _validPlacement(const AccessType& i, 
-                    const Point3& spot, const Board::Orientation& o) const;
+                    const SmallPoint3& spot, const Player::Orientation& o) const;
             bool _running() const;
             bool _onesTurn;
+
             Board _gameBoard;
             Player _one;
             Player _two;
