@@ -219,7 +219,6 @@ namespace Gungi
     uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o);
     bool hasOpenTierAt(const Board& board, const SmallPoint2& pt3, const Orientation& o);
     bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o);
-
     void placeAt(Board& board, const IndexedPiece* piece);
 
     SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, const Orientation& o);

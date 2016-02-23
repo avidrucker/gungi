@@ -747,30 +747,9 @@ namespace Gungi
     uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2)
     {
         for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
-        {
             if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i)))
                 return i;
-        }
         return NO_TIERS_FREE;
-    }
-
-    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3)
-    {
-        return availableTierAt(board, SmallPoint2(pt3.x, pt3.z)); 
-    }
-
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2)
-    {
-        if (availableTierAt(board, pt2) == NO_TIERS_FREE)
-            return false;
-        return true;
-    }
-
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3)
-    {
-        if (availableTierAt(board, pt3) == NO_TIERS_FREE)
-            return false;
-        return true;
     }
 
     bool isNullAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
@@ -795,11 +774,30 @@ namespace Gungi
         return NO_TIERS_FREE;
     }
 
+    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3)
+    {
+        return availableTierAt(board, SmallPoint2(pt3.x, pt3.z)); 
+    }
+
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2)
+    {
+        if (availableTierAt(board, pt2) == NO_TIERS_FREE)
+            return false;
+        return true;
+    }
+
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3)
+    {
+        if (availableTierAt(board, pt3) == NO_TIERS_FREE)
+            return false;
+        return true;
+    }
+
     uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
     {
         return availableTierAt(board, SmallPoint2(pt3.x, pt3.z), o);
     }
-    
+
     bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o)
     {
         if (availableTierAt(board, pt2, o) == NO_TIERS_FREE)
