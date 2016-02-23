@@ -52,13 +52,13 @@ int main()
         y = 0;;
         z = rand() % 3;
         pt = SmallPoint3(x,z,y);
-        game.placeOnBoard(i, pt);
+        game.drop(i, pt);
     
         x = rand() % 9;
         y = 0;
         z = rand() % 3 + 6;
         pt = SmallPoint3(x,z,y);
-        game.placeOnBoard(i, pt);
+        game.drop(i, pt);
     }
     const Board* board = &game.gameBoard();
     displayBoard(*board);

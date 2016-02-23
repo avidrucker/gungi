@@ -23,25 +23,67 @@
 
 namespace Gungi
 {
-    constexpr uint8_t BOARD_WIDTH   = 9;
-    constexpr uint8_t BOARD_DEPTH   = 9;
-    constexpr uint8_t BOARD_HEIGHT  = 3;
-    constexpr uint8_t FRONT_PCS_CT  = 10;
-    constexpr uint8_t BACK_PCS_CT   = 10;
-    constexpr uint8_t UNBOUNDED     = ~0;
-    constexpr uint8_t NO_TIERS_FREE = ~0;
+    class Move;
+    class IndexedPiece;
 
+    constexpr uint8_t BOARD_WIDTH        = 9;
+    constexpr uint8_t BOARD_DEPTH        = 9;
+    constexpr uint8_t BOARD_HEIGHT       = 3;
+    constexpr uint8_t FRONT_PCS_CT       = 10;
+    constexpr uint8_t BACK_PCS_CT        = 10;
+    constexpr uint8_t UNBOUNDED          = ~0;
+    constexpr uint8_t NO_TIERS_FREE      = ~0;
+    constexpr uint8_t VALID_PLCMT_DEPTH  = 3;
+    constexpr uint8_t STD_PIECE_CT       = 23;
+    constexpr uint8_t CAPTAIN_RANK       = 12;
+    constexpr uint8_t SAMURAI_RANK       = 10;
+    constexpr uint8_t NINJA_RANK         = 8;
+    constexpr uint8_t HIDDEN_DRAGON_RANK = 8;
+    constexpr uint8_t CATAPULT_RANK      = 6;
+    constexpr uint8_t FORTRESS_RANK      = 6;
+    constexpr uint8_t PRODIGY_RANK       = 4;
+    constexpr uint8_t ARCHER_RANK        = 4;
+    constexpr uint8_t SOLDIER_RANK       = 2;
+    constexpr uint8_t NO_HEAD            = 0;
+    constexpr uint8_t DRAGON_KING_RANK   = 12;
+    constexpr uint8_t LANCE_RANK         = 10;
+    constexpr uint8_t PHOENIX_RANK       = 10;
+    constexpr uint8_t JOUNIN_RANK        = 8;
+    constexpr uint8_t ARROW_RANK         = 6;
+    constexpr uint8_t PIKE_RANK          = 6;
+    constexpr uint8_t GOLD_RANK          = 6;
+    constexpr uint8_t PISTOL_RANK        = 4;
+    constexpr uint8_t SILVER_RANK        = 4;
+    constexpr uint8_t BRONZE_RANK        = 2;
+    constexpr uint8_t NO_TAIL            = 0;
+
+    using RankSize    = uint8_t;
     using SmallPoint2 = Point2<uint8_t>;
     using SmallPoint3 = Point3<uint8_t>;
+    using MoveSet     = std::vector<Move>;
+    using PieceSet    = std::vector<IndexedPiece>;
+    using Board       = Matrix3<const IndexedPiece*, uint8_t>;
 
-    const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED };
-    const SmallPoint3 UBD_PT3 { UNBOUNDED, UNBOUNDED, UNBOUNDED };
-
-    bool isUnbounded(const SmallPoint2& pt);
-    bool isUnbounded(const SmallPoint3& pt);
+    enum class Orientation : uint8_t
+    { Positive, Negative };
 
     enum class Direction : uint8_t 
     { NW, N, NE, E, SE, S, SW, W };
+
+    enum class Tier : uint8_t 
+    { One, Two, Three };
+
+
+    enum class Head : uint8_t
+    { None, Commander, Captain, Samurai, Ninja,  Catapult, 
+        Fortress, HiddenDragon , Prodigy, Archer, Soldier };
+
+    enum class Tail : uint8_t
+    { None, Pistol, Pike, Jounin, Lance, DragonKing,
+        Phoenix, Arrow, Gold, Silver, Bronze };
+
+    const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED };
+    const SmallPoint3 UBD_PT3 { UNBOUNDED, UNBOUNDED, UNBOUNDED };
 
     class Move
     {
@@ -61,56 +103,7 @@ namespace Gungi
             const Direction _direction;
             Move* _next;
     };
-
-    using MoveSet = std::vector<Move>;
-
-    enum class Tier : uint8_t 
-    { One, Two, Three };
-
-    Tier& operator ++(Tier& tier);
-    Tier& operator --(Tier& tier);
-
-    using RankSize = uint8_t;
-
-    /**
-     * Heads
-     */
-
-    enum class Head : uint8_t
-    { None, Commander, Captain, Samurai, Ninja,  Catapult, 
-        Fortress, HiddenDragon , Prodigy, Archer, Soldier };
-
-    constexpr RankSize CAPTAIN_RANK       = 12;
-    constexpr RankSize SAMURAI_RANK       = 10;
-    constexpr RankSize NINJA_RANK         = 8;
-    constexpr RankSize HIDDEN_DRAGON_RANK = 8;
-    constexpr RankSize CATAPULT_RANK      = 6;
-    constexpr RankSize FORTRESS_RANK      = 6;
-    constexpr RankSize PRODIGY_RANK       = 4;
-    constexpr RankSize ARCHER_RANK        = 4;
-    constexpr RankSize SOLDIER_RANK       = 2;
-    constexpr RankSize NO_HEAD            = 0;
     
-    /**
-     * Tails
-     */
-
-    enum class Tail : uint8_t
-    { None, Pistol, Pike, Jounin, Lance, DragonKing,
-        Phoenix, Arrow, Gold, Silver, Bronze };
-
-    constexpr RankSize DRAGON_KING_RANK = 12;
-    constexpr RankSize LANCE_RANK       = 10;
-    constexpr RankSize PHOENIX_RANK     = 10;
-    constexpr RankSize JOUNIN_RANK      = 8;
-    constexpr RankSize ARROW_RANK       = 6;
-    constexpr RankSize PIKE_RANK        = 6;
-    constexpr RankSize GOLD_RANK        = 6;
-    constexpr RankSize PISTOL_RANK      = 4;
-    constexpr RankSize SILVER_RANK      = 4;
-    constexpr RankSize BRONZE_RANK      = 2;
-    constexpr RankSize NO_TAIL          = 0;
-
     class Piece
     {
         public:
@@ -146,9 +139,16 @@ namespace Gungi
             SmallPoint3 _idx;
     };
 
-    constexpr uint8_t STD_PIECE_CT = 23;
+    const IndexedPiece NULL_PIECE { Head::None, Tail::None };
 
-    using PieceSet = std::vector<IndexedPiece>;
+    Tier& operator ++(Tier& tier);
+    Tier& operator --(Tier& tier);
+
+    bool isUnbounded(const SmallPoint2& pt);
+    bool isUnbounded(const SmallPoint3& pt);
+    using BoardState = Matrix3<bool, uint8_t>;
+    using Indices3 = std::vector<SmallPoint3>;
+    using StateFilter = bool(*)(const IndexedPiece&);
 
     void initPieceSet(PieceSet& pieceSet);
 
@@ -179,15 +179,51 @@ namespace Gungi
     MoveSet genHeadMoveSet(const Piece& piece, const Tier& tier);
     MoveSet genTailMoveSet(const Piece& piece, const Tier& tier);
 
-    const IndexedPiece NULL_PIECE { Head::None, Tail::None };
+    template <class SizeType>
+    SizeType OverflowSub(const SizeType& lhs, const SizeType& rhs, const SizeType& overflow)
+    {
+        if (lhs < rhs)
+            return overflow;
+        else
+            return lhs - rhs;
+    }
 
-    using Board = Matrix3<const IndexedPiece*, uint8_t>;
+    template <class SizeType>
+    SizeType OverflowAdd(const SizeType& lhs, const SizeType& rhs,
+            const SizeType& constraint, const SizeType& overflow)
+    {
+        SizeType res = lhs + rhs;
+        return res < constraint ? res : overflow;
+    }
 
-    bool isNullAt(const Board& board, const SmallPoint3& pt);
-    void nullifyAt(Board& board, const SmallPoint3& pt);
-    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt);
-    uint8_t availableTierAt(const Board& board, SmallPoint3 pt);
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt);
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt);
+    // A bunch of overloads o.O
+    SmallPoint2 asPositive2(const SmallPoint2& pt2);
+    SmallPoint2 asNegative2(const SmallPoint2& pt2);
+    SmallPoint2 asPositive2(const SmallPoint3& pt3);
+    SmallPoint2 asNegative2(const SmallPoint3& pt3);
+    SmallPoint3 asPositive3(const SmallPoint2& pt2);
+    SmallPoint3 asNegative3(const SmallPoint2& pt2);
+    SmallPoint3 asPositive3(const SmallPoint3& pt3);
+    SmallPoint3 asNegative3(const SmallPoint3& pt3);
+
+    bool isNullAt(const Board& board, const SmallPoint3& pt3);
+    void nullifyAt(Board& board, const SmallPoint3& pt3);
+    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2);
+    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3);
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2);
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3);
+    
+    bool isNullAt(const Board& board, const SmallPoint3& pt3, const Orientation& o);
+    void nullifyAt(Board& board, const SmallPoint3& pt3, const Orientation& o);
+    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o);
+    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o);
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt3, const Orientation& o);
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o);
+
     void placeAt(Board& board, const IndexedPiece* piece);
+
+    SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, const Orientation& o);
+    SmallPoint2 genIndex2(const SmallPoint3& pt3, const Move& move, const Orientation& o);
+    
+    BoardState genBoardState(const Board& board, const Indices3& indices, StateFilter filter);
 }

@@ -1,4 +1,20 @@
 /*
+ *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ *                    Version 2, December 2004
+ * 
+ * Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+ * 
+ * Everyone is permitted to copy and distribute verbatim or modified
+ * copies of this license document, and changing it is allowed as long
+ * as the name is changed.
+ * 
+ *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ *   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * 
+ *  0. You just DO WHAT THE FUCK YOU WANT TO.
+ */
+
+/*
  * Copyright 2016 Fermin, Yaneury <fermin.yaneury@gmail.com>
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,31 +38,24 @@
 
 namespace Gungi
 {
-
     class Player
     {
         using AccessType = uint8_t;
 
         public:
-            enum class Orientation : uint8_t
-            { Positive, Negative };
-
             enum class Color : uint8_t { Black, White }; //Could grow
 
             Player(Board* gameBoard, const Color& color, const Orientation& o);
-            bool drop(const AccessType& idx, const SmallPoint3& spot);
-            bool place(const AccessType& idx, const Move& move);
+            bool drop(const AccessType& idx, SmallPoint3 pt3);
+            bool shift(const AccessType& idx, const Move& move);
             void transfer(const AccessType& idx, Player& player);
-            void append(const IndexedPiece& pc);
+            void append(IndexedPiece pc);
             const IndexedPiece& operator [] (const AccessType& i) const;
             const SmallPoint3& indexFor(const AccessType& i) const;
             const Color& getColor() const;
             const PieceSet& getFullSet() const;
             const Orientation& getOrientation() const;
         private:
-            void _makePositive(SmallPoint3& pt);
-            bool _place(const AccessType& i, SmallPoint3 spot);
-
             PieceSet _pieces;
             Board* _gameBoard;
             Color _color;
@@ -62,24 +71,23 @@ namespace Gungi
 
     class Game
     {
-        using AccessType = size_t;
+        using AccessType = uint8_t;
     
         public:
             Game();
+            ~Game();
             void start();
             const Board& gameBoard() const;
             const Player* currentPlayer() const;
-            bool placeOnBoard(const AccessType& i, const SmallPoint3& spot);
-            void move(const AccessType& idx, const Move& move);
-
-            static constexpr uint8_t VALID_PLACEMENT_DEPTH = 3;
+            bool drop(const AccessType& i, const SmallPoint3& spot);
+            bool move(const AccessType& idx, const Move& move);
+            const Phase& getPhase() const;
+            bool validPlacementDrop(const AccessType& i, SmallPoint3 pt3,
+                    const Orientation& o) const;
         private:
             void _flipPlayer();
-            bool _validPlacement(const AccessType& i, 
-                    const SmallPoint3& spot, const Player::Orientation& o) const;
             bool _running() const;
             bool _onesTurn;
-
             Board _gameBoard;
             Player _one;
             Player _two;
