@@ -18,17 +18,6 @@
 
 namespace Gungi
 {
-    bool isUnbounded(const SmallPoint2& pt)
-    {
-        return pt.x == UNBOUNDED && pt.y == UNBOUNDED;
-    }
-
-    bool isUnbounded(const SmallPoint3& pt)
-    {
-        return pt.x == UNBOUNDED && pt.z == UNBOUNDED
-            && pt.y == UNBOUNDED;
-    }
-
     Move::Move(const MagnitudeType& magnitude, const Direction& direction)
     : _magnitude (magnitude)
     , _direction (direction)
@@ -61,38 +50,6 @@ namespace Gungi
     Move* Move::getNext() const
     {
         return _next;
-    }
-
-    Tier& operator ++(Tier& tier)
-    {
-        switch (tier)
-        {
-            case Tier::One:
-                tier = Tier::Two;
-                return tier;
-            case Tier::Two:
-                tier = Tier::Three;
-                return tier;
-            case Tier::Three:
-                tier = Tier::One;
-                return tier;
-        }
-    }
-
-    Tier& operator --(Tier& tier)
-    {
-        switch (tier)
-        {
-            case Tier::One:
-                tier = Tier::Three;
-                return tier;
-            case Tier::Two:
-                tier = Tier::One;
-                return tier;
-            case Tier::Three:
-                tier = Tier::Two;
-                return tier;
-        }
     }
 
     Piece::Piece()
@@ -170,6 +127,49 @@ namespace Gungi
     bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs)
     {
         return (lhs._idx == rhs._idx) && (lhs._head == rhs._head) && (lhs._tail == rhs._tail);
+    }
+
+    bool isUnbounded(const SmallPoint2& pt)
+    {
+        return pt.x == UNBOUNDED && pt.y == UNBOUNDED;
+    }
+
+    bool isUnbounded(const SmallPoint3& pt)
+    {
+        return pt.x == UNBOUNDED && pt.z == UNBOUNDED
+            && pt.y == UNBOUNDED;
+    }
+
+    Tier& operator ++(Tier& tier)
+    {
+        switch (tier)
+        {
+            case Tier::One:
+                tier = Tier::Two;
+                return tier;
+            case Tier::Two:
+                tier = Tier::Three;
+                return tier;
+            case Tier::Three:
+                tier = Tier::One;
+                return tier;
+        }
+    }
+
+    Tier& operator --(Tier& tier)
+    {
+        switch (tier)
+        {
+            case Tier::One:
+                tier = Tier::Three;
+                return tier;
+            case Tier::Two:
+                tier = Tier::One;
+                return tier;
+            case Tier::Three:
+                tier = Tier::Two;
+                return tier;
+        }
     }
 
     void initPieceSet(PieceSet& pieceSet)
@@ -686,45 +686,91 @@ namespace Gungi
         return moveset;
     }
 
-    bool isNullAt(const Board& board, const SmallPoint3& pt)
+    SmallPoint2 asPositive2(const SmallPoint2& pt2)
     {
-        return board[pt] == &NULL_PIECE;
+        return SmallPoint2((BOARD_WIDTH - pt2.x),
+                (BOARD_DEPTH - pt2.y));
     }
 
-    void nullifyAt(Board& board, const SmallPoint3& pt)
+    SmallPoint2 asNegative2(const SmallPoint2& pt2)
     {
-        board[pt] = &NULL_PIECE;
+        return SmallPoint2((pt2.x - BOARD_WIDTH),
+                (pt2.y - BOARD_DEPTH));
+    }
+
+    SmallPoint2 asPositive2(const SmallPoint3& pt3)
+    {
+        return SmallPoint2((BOARD_WIDTH - pt3.x),
+                (BOARD_DEPTH - pt3.z));
+    }
+
+    SmallPoint2 asNegative2(const SmallPoint3& pt3)
+    {
+        return SmallPoint2((pt3.x - BOARD_WIDTH),
+                (pt3.z - BOARD_DEPTH));
+    }
+
+    SmallPoint3 asPositive3(const SmallPoint2& pt2)
+    {
+        return SmallPoint3((BOARD_WIDTH - pt2.x),
+                (BOARD_DEPTH - pt2.y), 0u);
+    }
+
+    SmallPoint3 asNegative3(const SmallPoint2& pt2)
+    {
+        return SmallPoint3((pt2.x - BOARD_WIDTH),
+                (pt2.y - BOARD_DEPTH), 0u);
+    }
+
+    SmallPoint3 asPositive3(const SmallPoint3& pt3)
+    {
+        return SmallPoint3((BOARD_WIDTH - pt3.x),
+                (BOARD_DEPTH - pt3.z), 0u);
+    }
+
+    SmallPoint3 asNegative3(const SmallPoint3& pt3)
+    {
+        return SmallPoint3((pt3.x - BOARD_WIDTH),
+                (pt3.z - BOARD_DEPTH), 0u);
+    }
+
+    bool isNullAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
+    {
+        if (o == Orientation::Positive)
+            return board[pt3] == &NULL_PIECE;
+        return board[asPositive3(pt3)] == &NULL_PIECE;
+    }
+
+    void nullifyAt(Board& board, const SmallPoint3& pt3, const Orientation& o)
+    {
+        if (o == Orientation::Positive)
+            board[pt3] = &NULL_PIECE;
+        board[asPositive3(pt3)] = &NULL_PIECE;
     }
     
-    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt)
+    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o)
     {
         for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
-            if (isNullAt(board, SmallPoint3(pt.x, pt.y, i)))
+            if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i), o))
                 return i;
         return NO_TIERS_FREE;
     }
 
-    uint8_t availableTierAt(const Board& board, SmallPoint3 pt)
+    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
     {
-        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
-        {
-            pt.y = i;
-            if (isNullAt(board, pt))
-                    return i;
-        }
-        return NO_TIERS_FREE;
+        return availableTierAt(board, SmallPoint2(pt3.x, pt3.z), o);
     }
     
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt)
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o)
     {
-        if (availableTierAt(board, pt) == NO_TIERS_FREE)
+        if (availableTierAt(board, pt2, o) == NO_TIERS_FREE)
             return false;
         return true;
     }
 
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt)
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
     {
-        if (availableTierAt(board, pt) == NO_TIERS_FREE)
+        if (availableTierAt(board, pt3, o) == NO_TIERS_FREE)
             return false;
         return true;
     }
@@ -732,5 +778,92 @@ namespace Gungi
     void placeAt(Board& board, const IndexedPiece* piece)
     {
         board[piece->getIndex()] = piece;
+    }
+
+    SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, const Orientation& o)
+    {
+        if (o == Orientation::Positive)
+        {
+            switch (move.getDirection())
+            {
+                case Direction::NW:
+                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::N:
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::NE:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::E:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    break;
+                case Direction::SE:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                    break;
+                case Direction::S:
+                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                    break;
+                case Direction::SW:
+                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                    break;
+                case Direction::W:
+                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                    break;
+            }
+        }
+        else
+        {
+            switch (move.getDirection())
+            {
+                case Direction::NW:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                    break;
+                case Direction::N:
+                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                    break;
+                case Direction::NE:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::E:
+                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::SE:
+                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::S:
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::SW:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                    break;
+                case Direction::W:
+                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                    break;
+            }
+        }
+        return pt2;
+    }
+
+    SmallPoint2 genIndex2(const SmallPoint3& pt3, const Move& move, const Orientation& o)
+    {
+        return genIndex2(SmallPoint2(pt3.x, pt3.z), move, o);
+    }
+
+    BoardState genBoardState(const Board& board, const Indices3& indices, StateFilter filter)
+    {
+        BoardState state { BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, false };
+        for (auto idx = indices.cbegin(); idx != indices.cend(); ++idx)
+            if (filter(*(board[*idx])))
+                    state[*idx] = true;
+        return state;
     }
 }

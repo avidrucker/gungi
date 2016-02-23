@@ -1,4 +1,20 @@
 /*
+ *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ *                    Version 2, December 2004
+ * 
+ * Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+ * 
+ * Everyone is permitted to copy and distribute verbatim or modified
+ * copies of this license document, and changing it is allowed as long
+ * as the name is changed.
+ * 
+ *            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ *   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ * 
+ *  0. You just DO WHAT THE FUCK YOU WANT TO.
+ */
+
+/*
  * Copyright 2016 Fermin, Yaneury <fermin.yaneury@gmail.com>
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,26 +43,50 @@ namespace Gungi
        initPieceSet(_pieces);
     }
 
-    bool Player::drop(const AccessType& idx, const SmallPoint3& spot)
+    bool Player::drop(const AccessType& i, SmallPoint3 pt3)
     {
-        return _place(idx, spot);
+        if (!_pieces[i].isUnbounded())
+            nullifyAt(*_gameBoard, _pieces[i].getIndex(), getOrientation()); 
+
+        pt3.y = availableTierAt(*_gameBoard, pt3, getOrientation());
+        if (pt3.y == NO_TIERS_FREE)
+            return false;
+
+        _pieces[i].setIndex(pt3);
+        placeAt(*_gameBoard, &_pieces[i]);
+        return true;
     }
 
-    bool Player::place(const AccessType& idx, const Move& move)
+    bool Player::shift(const AccessType& i, const Move& move)
     {
+        auto pt2 = genIndex2(_pieces[i].getIndex(), move, getOrientation());
+        if (isUnbounded(pt2))
+            return false;
+
+        if (!_pieces[i].isUnbounded())
+            nullifyAt(*_gameBoard, _pieces[i].getIndex(), getOrientation()); 
+
+        auto pt3 = pt2;
+        pt3.y = availableTierAt(*_gameBoard, pt3, getOrientation());
+
+        if (pt3.y == NO_TIERS_FREE)
+            return false;
+        
+        _pieces[i].setIndex(pt3);
+        placeAt(*_gameBoard, &_pieces[i]);
         return true;
     }
 
     void Player::transfer(const AccessType& idx, Player& player)
     {
-        nullifyAt(*_gameBoard, _pieces[idx].getIndex());
+        nullifyAt(*_gameBoard, _pieces[idx].getIndex(), getOrientation());
         player.append(_pieces[idx]);
         _pieces.erase(_pieces.cbegin() + idx);
     }
 
     void Player::append(const IndexedPiece& pc)
     {
-        _pieces.push_back(pc); 
+        _pieces.push_back(pc);
     }
 
     const IndexedPiece& Player::operator [] (const AccessType& i) const
@@ -69,33 +109,9 @@ namespace Gungi
         return _pieces;
     }
 
-    const Player::Orientation& Player::getOrientation() const
+    const Orientation& Player::getOrientation() const
     {
         return _orientation;
-    }
-
-    void Player::_makePositive(SmallPoint3& pt)
-    {
-        pt.x = BOARD_WIDTH - pt.x;
-        pt.z = BOARD_DEPTH - pt.z;
-    }
-
-    bool Player::_place(const AccessType& i, SmallPoint3 pt)
-    {
-        if (_orientation == Orientation::Negative)
-            _makePositive(pt);
-
-        if (!_pieces[i].isUnbounded())
-            nullifyAt(*_gameBoard, _pieces[i].getIndex()); 
-
-        auto tmp = _pieces[i].getIndex();
-        tmp.y = availableTierAt(*_gameBoard, pt); 
-        _pieces[i].setIndex(tmp);
-        if (_pieces[i].getIndex().y == NO_TIERS_FREE)
-            return false;
-        
-        placeAt(*_gameBoard, &_pieces[i]);
-        return true;
     }
 
     Phase& operator ++ (Phase& phase)
@@ -133,8 +149,8 @@ namespace Gungi
     Game::Game()
     : _onesTurn      (true)
     , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, &NULL_PIECE)
-    , _one           (&_gameBoard, Player::Color::Black, Player::Orientation::Positive)
-    , _two           (&_gameBoard, Player::Color::White, Player::Orientation::Negative)
+    , _one           (&_gameBoard, Player::Color::Black, Orientation::Positive)
+    , _two           (&_gameBoard, Player::Color::White, Orientation::Negative)
     , _phase         (Phase::Standby)
     , _currentPlayer (nullptr)
     {}
@@ -158,12 +174,10 @@ namespace Gungi
         return _currentPlayer; 
     }
 
-    bool Game::placeOnBoard(const AccessType& i, const SmallPoint3& pt)
+    bool Game::drop(const AccessType& i, const SmallPoint3& pt)
     {
         if (_phase == Phase::Standby)
             return false;
-
-        //auto pt = Board::convertIndex(_currentPlayer->getOrientation(), spot);
 
         if (_validPlacement(i, pt, _currentPlayer->getOrientation()))
         {
@@ -175,13 +189,16 @@ namespace Gungi
         return false;
     }
 
-    void Game::move(const AccessType& idx, const Move& move)
+    bool Game::move(const AccessType& idx, const Move& move)
     {
-        if (_running())
-        {
-            _currentPlayer->place(idx,move);
-            _flipPlayer();
-        }
+        if (!_running())
+            return false;
+
+        if (!_currentPlayer->shift(idx,move))
+            return false;
+
+        _flipPlayer();
+        return true;
     }
 
     void Game::_flipPlayer()
@@ -190,64 +207,55 @@ namespace Gungi
         _onesTurn = !_onesTurn;
     }
 
-    bool Game::_validPlacement(const AccessType& i, const SmallPoint3& spot, 
-            const Player::Orientation& o) const
+    bool Game::_validPlacementDrop(const AccessType& i, SmallPoint3 pt3)
     {
-        if (_phase == Phase::Placement)
+        auto pieceSet = _currentPlayer->getFullSet();
+        auto piece = pieceSet[i];
+
+        if (_currentPlayer->getOrientation == Orientation::Positive)
         {
-            std::cout << spot.x << ',' << spot.z << ',' << spot.y << std::endl;
-            auto PieceSet = _currentPlayer->getFullSet();
-            auto Piece = PieceSet[i];
+            if (pt3.z >= VALID_PLACEMENT_DEPTH) 
+                return false;
 
-            if (o == Player::Orientation::Positive)
+            if (piece.getHead() == Head::Soldier)
             {
-                if (spot.z >= VALID_PLACEMENT_DEPTH)
-                    return false;
-
-                // Could be optimized worst-case @ O(n)
-                if (Piece.getHead() == Head::Soldier)
+                for (uint8_t i = 0u; i < VALID_PLCMT_DEPTH; ++i)
                 {
-                    for (auto i = 0u; i < VALID_PLACEMENT_DEPTH; ++i)
+                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
                     {
-                        for (auto j = 0u; j < BOARD_HEIGHT; ++j)
-                        {
-                            SmallPoint3 tmp = { spot.x, i, j };
-                            if (_gameBoard[tmp]->getHead() == Head::Soldier)
-                                return false;
-                        }
+                        pt3.z = i;
+                        pt3.y = j;
+                        if (isNullAt(_gameBoard, pt3))
+                            break;
+
+                        if (_gameBoard[pt3]->getHead == Head::Soldier)
+                            return false;
                     }
                 }
             }
-            else
-            {
-                if (!(spot.z >= (BOARD_DEPTH - VALID_PLACEMENT_DEPTH)
-                        && spot.z < BOARD_DEPTH))
-                    return false; 
-
-                if (Piece.getHead() == Head::Soldier)
-                {
-                    for (auto i = (BOARD_DEPTH - VALID_PLACEMENT_DEPTH); 
-                            i < BOARD_DEPTH; ++i)
-                    {
-                        for (auto j = 0u; j < BOARD_HEIGHT; ++j)
-                        {
-                            SmallPoint3 tmp = { spot.x, i, j };
-                            if (_gameBoard[tmp]->getHead() == Head::Soldier)
-                                return false;
-                        }
-                    }
-                }
-            }
-
-            //if (_gameBoard.hasAnEmptyTier(spot))
-             //   return true;
-
-            return false;
         }
         else
         {
-            return true;
+            _makePositive(
+            if (!(pt3.z >= (BOARD_DEPTH - VALID_PLACEMENT_DEPTH)
+                    && pt3.z < BOARD_DEPTH))
+                return false; 
+
+            if (Piece.getHead() == Head::Soldier)
+            {
+                for (auto i = (BOARD_DEPTH - VALID_PLACEMENT_DEPTH); 
+                        i < BOARD_DEPTH; ++i)
+                {
+                    for (auto j = 0u; j < BOARD_HEIGHT; ++j)
+                    {
+                        SmallPoint3 tmp = { spot.x, i, j };
+                        if (_gameBoard[tmp]->getHead() == Head::Soldier)
+                            return false;
+                    }
+                }
+            }
         }
+        return true;
     }
 
     bool Game::_running() const

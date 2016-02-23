@@ -22,20 +22,16 @@
 
 namespace Gungi
 {
-
     class Player
     {
         using AccessType = uint8_t;
 
         public:
-            enum class Orientation : uint8_t
-            { Positive, Negative };
-
             enum class Color : uint8_t { Black, White }; //Could grow
 
             Player(Board* gameBoard, const Color& color, const Orientation& o);
-            bool drop(const AccessType& idx, const SmallPoint3& spot);
-            bool place(const AccessType& idx, const Move& move);
+            bool drop(const AccessType& idx, SmallPoint3 pt3);
+            bool shift(const AccessType& idx, const Move& move);
             void transfer(const AccessType& idx, Player& player);
             void append(const IndexedPiece& pc);
             const IndexedPiece& operator [] (const AccessType& i) const;
@@ -44,9 +40,6 @@ namespace Gungi
             const PieceSet& getFullSet() const;
             const Orientation& getOrientation() const;
         private:
-            void _makePositive(SmallPoint3& pt);
-            bool _place(const AccessType& i, SmallPoint3 spot);
-
             PieceSet _pieces;
             Board* _gameBoard;
             Color _color;
@@ -62,24 +55,21 @@ namespace Gungi
 
     class Game
     {
-        using AccessType = size_t;
+        using AccessType = uint8_t;
     
         public:
             Game();
             void start();
             const Board& gameBoard() const;
             const Player* currentPlayer() const;
-            bool placeOnBoard(const AccessType& i, const SmallPoint3& spot);
-            void move(const AccessType& idx, const Move& move);
+            bool drop(const AccessType& i, const SmallPoint3& spot);
+            bool move(const AccessType& idx, const Move& move);
 
-            static constexpr uint8_t VALID_PLACEMENT_DEPTH = 3;
         private:
             void _flipPlayer();
-            bool _validPlacement(const AccessType& i, 
-                    const SmallPoint3& spot, const Player::Orientation& o) const;
+            bool _validPlacementDrop(const AccessType& i, const SmallPoint3& pt3); 
             bool _running() const;
             bool _onesTurn;
-
             Board _gameBoard;
             Player _one;
             Player _two;
