@@ -37,7 +37,6 @@ namespace Gungi
     Player::Player(Board* gameBoard, const Color& color, const Orientation& o)
     : _gameBoard    (gameBoard)
     , _color        (color)
-//    , _onHandCursor (STD_PIECE_CT)
     , _orientation  (o)
     {
        initPieceSet(_pieces);
@@ -113,38 +112,6 @@ namespace Gungi
     const Orientation& Player::getOrientation() const
     {
         return _orientation;
-    }
-
-    Phase& operator ++ (Phase& phase)
-    {
-        switch (phase)
-        {
-            case Phase::Standby:
-                phase = Phase::Placement;
-                return phase;
-            case Phase::Placement:
-                phase = Phase::Running;
-                return phase;
-            case Phase::Running:
-                phase = Phase::Placement;
-                return phase;
-        }
-    }
-
-    Phase& operator -- (Phase& phase)
-    {
-        switch (phase)
-        {
-            case Phase::Standby:
-                phase = Phase::Running;
-                return phase;
-            case Phase::Placement:
-                phase = Phase::Standby;
-                return phase;
-            case Phase::Running:
-                phase = Phase::Placement;
-                return phase;
-        }
     }
 
     Game::Game()

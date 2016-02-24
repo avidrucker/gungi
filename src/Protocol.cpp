@@ -172,6 +172,38 @@ namespace Gungi
         }
     }
 
+    Phase& operator ++ (Phase& phase)
+    {
+        switch (phase)
+        {
+            case Phase::Standby:
+                phase = Phase::Placement;
+                return phase;
+            case Phase::Placement:
+                phase = Phase::Running;
+                return phase;
+            case Phase::Running:
+                phase = Phase::Placement;
+                return phase;
+        }
+    }
+
+    Phase& operator -- (Phase& phase)
+    {
+        switch (phase)
+        {
+            case Phase::Standby:
+                phase = Phase::Running;
+                return phase;
+            case Phase::Placement:
+                phase = Phase::Standby;
+                return phase;
+            case Phase::Running:
+                phase = Phase::Placement;
+                return phase;
+        }
+    }
+
     void initPieceSet(PieceSet& pieceSet)
     {
        pieceSet.push_back(IndexedPiece(Head::Commander));
@@ -734,16 +766,6 @@ namespace Gungi
                 (pt3.z - BOARD_DEPTH), 0u);
     }
 
-    bool isNullAt(const Board& board, const SmallPoint3& pt3)
-    {
-        return board[pt3] == &NULL_PIECE;
-    }
-
-    void nullifyAt(Board& board, const SmallPoint3& pt3)
-    {
-        board[pt3] = &NULL_PIECE;
-    }
-
     uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2)
     {
         for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
@@ -754,14 +776,14 @@ namespace Gungi
 
     bool isNullAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
     {
-        if (o == Orientation::Positive)
+        if (o == Orientation::Positive || o == Orientation::None)
             return board[pt3] == &NULL_PIECE;
         return board[asPositive3(pt3)] == &NULL_PIECE;
     }
 
     void nullifyAt(Board& board, const SmallPoint3& pt3, const Orientation& o)
     {
-        if (o == Orientation::Positive)
+        if (o == Orientation::Positive || o == Orientation::None)
             board[pt3] = &NULL_PIECE;
         board[asPositive3(pt3)] = &NULL_PIECE;
     }
@@ -772,25 +794,6 @@ namespace Gungi
             if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i), o))
                 return i;
         return NO_TIERS_FREE;
-    }
-
-    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3)
-    {
-        return availableTierAt(board, SmallPoint2(pt3.x, pt3.z)); 
-    }
-
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2)
-    {
-        if (availableTierAt(board, pt2) == NO_TIERS_FREE)
-            return false;
-        return true;
-    }
-
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3)
-    {
-        if (availableTierAt(board, pt3) == NO_TIERS_FREE)
-            return false;
-        return true;
     }
 
     uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
