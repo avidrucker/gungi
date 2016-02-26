@@ -24,7 +24,7 @@ using namespace Gungi;
 
 char getHeadChar(const Head& head);
 char getTailChar(const Tail& tail);
-void print(const IndexedPiece& piece);
+void print(const Piece& piece);
 void placePieces(Game& game);
 void displayBoard(const Board& board);
 
@@ -105,7 +105,7 @@ char getTailChar(const Tail& tail)
         }
 }
 
-void print(const IndexedPiece& piece)
+void print(const Piece& piece)
 {
     if (piece.isNull())
         cout << ' ';

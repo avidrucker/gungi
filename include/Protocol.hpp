@@ -24,56 +24,60 @@
 
 /**
  * Notes: 
- * 1. Consider making IndexedPiece a std::tuple< Piece, SmallPoint3>;
- *      Having an IndexedPiece container seems like poor design to me.
- * 2. Consider making a Piece Head,Tail as const.
- * 3. Consider removing setSide from Piece in favor of a flip() function.
- * 4. Consider storing pieces on a 32-bit int where bits correspnof to piece.
- * 5. Make orientation bools, enums are a waste, da fuq is this
+ * 6. Make filter function return valid indices only, not an entire Matrix3<bool>
+ * 8. Use smart pointers where raw pointers aren't needed.
  */
 
 namespace Gungi
 {
     class Move;
+    class Piece;
     
-    constexpr uint8_t BOARD_WIDTH        = 9; /**< Standard Gungi board width (Cols). */
-    constexpr uint8_t BOARD_DEPTH        = 9; /** Standard Gungi board depth (Rows). */
-    constexpr uint8_t BOARD_HEIGHT       = 3; /**< Standard amount of tiers in Gungi board.*/
-    constexpr uint8_t FRONT_PCS_CT       = 10; /**< Count of front side pieces. */
-    constexpr uint8_t BACK_PCS_CT        = 10; /**< Count of back side pieces. */
-    constexpr uint8_t UNBOUNDED          = ~0; /**< Indicates unbounded point. */
-    constexpr uint8_t NO_TIERS_FREE      = ~0; /**< Indicates lack of available tiers. */
-    constexpr uint8_t VALID_PLCMT_DEPTH  = 3; /**< Allowed rows to drop pieces during placement.*/
-    constexpr uint8_t STD_PIECE_CT       = 23; /**< Standard initial piece count per player. */
-    constexpr uint8_t CAPTAIN_RANK       = 12; /**< Rank value of captain. */
-    constexpr uint8_t SAMURAI_RANK       = 10; /**< Rank value of samurai. */
-    constexpr uint8_t NINJA_RANK         = 8; /**< Rank value of ninja. */
-    constexpr uint8_t HIDDEN_DRAGON_RANK = 8; /**< Rank value of hidden dragon. */
-    constexpr uint8_t CATAPULT_RANK      = 6; /**< Rank value of catapult. */
-    constexpr uint8_t FORTRESS_RANK      = 6; /**< Rank value of fortress. */
-    constexpr uint8_t PRODIGY_RANK       = 4; /**< Rank value of prodigy. */
-    constexpr uint8_t ARCHER_RANK        = 4; /**< Rank value of archer. */
-    constexpr uint8_t SOLDIER_RANK       = 2; /**< Rank value of soldier. */
-    constexpr uint8_t NO_HEAD            = 0; /**< Indicates piece wihout head (null piece). */
-    constexpr uint8_t DRAGON_KING_RANK   = 12; /**< Rank value of dragon king. */
-    constexpr uint8_t LANCE_RANK         = 10; /**< Rank value of lance. */
-    constexpr uint8_t PHOENIX_RANK       = 10; /**< Rank value of phoenix. */
-    constexpr uint8_t JOUNIN_RANK        = 8; /**< Rank value of jounin. */
-    constexpr uint8_t ARROW_RANK         = 6; /**< Rank value of arrow. */
-    constexpr uint8_t PIKE_RANK          = 6; /**< Rank value of pike. */
-    constexpr uint8_t GOLD_RANK          = 6; /**< Rank value of gold. */
-    constexpr uint8_t PISTOL_RANK        = 4; /**< Rank value of pistol. */
-    constexpr uint8_t SILVER_RANK        = 4; /**< Rank value of silver. */
-    constexpr uint8_t BRONZE_RANK        = 2; /**< Rank value of bronze. */
-    constexpr uint8_t NO_TAIL            = 0; /**< Indicates piece wihout tail.*/
-
-    using RankSize     = uint8_t;
-    using SmallPoint2  = Point2<uint8_t>;
-    using SmallPoint3  = Point3<uint8_t>;
+    using SizeType     = uint8_t;
+    using SmallPoint2  = Point2<SizeType>;
+    using SmallPoint3  = Point3<SizeType>;
     using MoveSet      = std::vector<Move>;
     using IndexedPiece = std::tuple<Piece, SmallPoint3>;
     using PieceSet     = std::vector<IndexedPiece>;
-    using Board        = Matrix3<const Piece*, uint8_t>;
+    using Board        = Matrix3<const Piece*, SizeType>;
+    using Orientation  = bool;
+    using BoardState   = Matrix3<bool, SizeType>;
+    using Indices3     = std::vector<SmallPoint3>;
+    using StateFilter  = bool(*)(const SmallPoint3& pt3, const Piece&);
+
+    constexpr SizeType BOARD_WIDTH        = 9; /**< Standard Gungi board width (Cols). */
+    constexpr SizeType BOARD_DEPTH        = 9; /** Standard Gungi board depth (Rows). */
+    constexpr SizeType BOARD_HEIGHT       = 3; /**< Standard amount of tiers in Gungi board.*/
+    constexpr SizeType FRONT_PCS_CT       = 10; /**< Count of front side pieces. */
+    constexpr SizeType BACK_PCS_CT        = 10; /**< Count of back side pieces. */
+    constexpr SizeType UNBOUNDED          = ~0; /**< Indicates unbounded point. */
+    constexpr SizeType NO_TIERS_FREE      = ~0; /**< Indicates lack of available tiers. */
+    constexpr SizeType VALID_PLCMT_DEPTH  = 3; /**< Allowed rows to drop pieces during placement.*/
+    constexpr SizeType STD_PIECE_CT       = 23; /**< Standard initial piece count per player. */
+    constexpr SizeType CAPTAIN_RANK       = 12; /**< Rank value of captain. */
+    constexpr SizeType SAMURAI_RANK       = 10; /**< Rank value of samurai. */
+    constexpr SizeType NINJA_RANK         = 8; /**< Rank value of ninja. */
+    constexpr SizeType HIDDEN_DRAGON_RANK = 8; /**< Rank value of hidden dragon. */
+    constexpr SizeType CATAPULT_RANK      = 6; /**< Rank value of catapult. */
+    constexpr SizeType FORTRESS_RANK      = 6; /**< Rank value of fortress. */
+    constexpr SizeType PRODIGY_RANK       = 4; /**< Rank value of prodigy. */
+    constexpr SizeType ARCHER_RANK        = 4; /**< Rank value of archer. */
+    constexpr SizeType SOLDIER_RANK       = 2; /**< Rank value of soldier. */
+    constexpr SizeType NO_HEAD            = 0; /**< Indicates piece wihout head (null piece). */;
+    constexpr SizeType DRAGON_KING_RANK   = 12; /**< Rank value of dragon king. */
+    constexpr SizeType LANCE_RANK         = 10; /**< Rank value of lance. */
+    constexpr SizeType PHOENIX_RANK       = 10; /**< Rank value of phoenix. */
+    constexpr SizeType JOUNIN_RANK        = 8; /**< Rank value of jounin. */
+    constexpr SizeType ARROW_RANK         = 6; /**< Rank value of arrow. */
+    constexpr SizeType PIKE_RANK          = 6; /**< Rank value of pike. */
+    constexpr SizeType GOLD_RANK          = 6; /**< Rank value of gold. */
+    constexpr SizeType PISTOL_RANK        = 4; /**< Rank value of pistol. */
+    constexpr SizeType SILVER_RANK        = 4; /**< Rank value of silver. */
+    constexpr SizeType BRONZE_RANK        = 2; /**< Rank value of bronze. */
+    constexpr SizeType NO_TAIL            = 0; /**< Indicates piece wihout tail. */
+    constexpr bool    ORIENTATION_POS     = true; /**< Indicates positive board orientation. */
+    constexpr bool    ORIENTATION_NEG     = false; /**< Indicates negative board orientation. */
+
 
     /**
      * Enum that stores possible board orientations. Positive indicates
@@ -81,41 +85,41 @@ namespace Gungi
      * of the computer screen. Negative indicates that board is being accessed with 
      * x,z being at the far right of the computer screen.
      */
-    enum class Orientation : uint8_t
-    { Positive, Negative, None };
+    //enum class Orientation : SizeType
+    //{ Positive, Negative, None };
 
     /**
      * Enum that stores the directions of a move using the conventional NW (north west),
      * N (north), etc. , directions.
      */
-    enum class Direction : uint8_t 
+    enum class Direction : SizeType 
     { NW, N, NE, E, SE, S, SW, W };
 
     /**
      * Enum that stores the current tier of a value.
      */
-    enum class Tier : uint8_t 
+    enum class Tier : SizeType 
     { One, Two, Three };
 
 
     /**
      * Enum that stores the head side character of a piece.
      */
-    enum class Head : uint8_t
+    enum class Head : SizeType
     { None, Commander, Captain, Samurai, Ninja,  Catapult, 
         Fortress, HiddenDragon , Prodigy, Archer, Soldier };
 
     /**
      * Enum that stores the tail side character of a piece.
      */
-    enum class Tail : uint8_t
+    enum class Tail : SizeType
     { None, Pistol, Pike, Jounin, Lance, DragonKing,
         Phoenix, Arrow, Gold, Silver, Bronze };
 
     /**
      * Enum that stores the phases of a standard game.
      */
-    enum class Phase : uint8_t
+    enum class Phase : SizeType
     { Standby, Placement, Running };
         
     const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint2. */
@@ -129,7 +133,7 @@ namespace Gungi
      */
     class Move
     {
-        using MagnitudeType = uint8_t;
+        using MagnitudeType = SizeType;
 
         public:
 
@@ -209,12 +213,6 @@ namespace Gungi
             Piece(const Head& head, const Tail& tail = Tail::None);
 
             /**
-             * This method sets the internal on-head flag to the passed parameter.
-             * @param onHead true if piece is on head side
-             */
-            void setSide(const bool& onHead);
-            
-            /**
              * This method will flip the side of the piece.
              */
             void flip();
@@ -243,7 +241,7 @@ namespace Gungi
              */
             bool onHead() const;
 
-        protected:
+        private:
             Head _head; /**<  The head value of the piece. */
             Tail _tail; /**< The tail value of the piece. */
             bool _nullPiece; /**< Null piece flag. */
@@ -286,10 +284,6 @@ namespace Gungi
      */
     bool isUnbounded(const SmallPoint3& pt3);
 
-    using BoardState = Matrix3<bool, uint8_t>;
-    using Indices3 = std::vector<SmallPoint3>;
-    using StateFilter = bool(*)(const SmallPoint3& pt3, const Piece&);
-
     /**
      * This function will initialize a PieceSet to the standard pieces distributed to a
      * player. This function is required since PieceSet isn't a class but a specialization of 
@@ -303,14 +297,14 @@ namespace Gungi
      * @param piece the Piece to evaluate
      * @return piece's head rank value
      */
-    RankSize getHeadValue(const Piece& piece);
+    SizeType getHeadValue(const Piece& piece);
 
     /**
      * This function returns the tail rank value of the given piece.
      * @param piece the Piece to evaluate
      * @return piece's tail rank value
      */
-    RankSize getTailValue(const Piece& piece);
+    SizeType getTailValue(const Piece& piece);
 
     /**
      * This function will append the moves that the commander can use before being filtered out.
@@ -576,7 +570,7 @@ namespace Gungi
      * @return true if index is a null piece
      */
     bool isNullAt(const Board& board, const SmallPoint3& pt3, 
-            const Orientation& o = Orientation::None);
+            Orientation o = ORIENTATION_POS);
     /**
      * This function will set the board to a null piece at the given point. Note,
      * this does not bounds check. Out of bounds points produce undefined behavior.
@@ -585,7 +579,7 @@ namespace Gungi
      * @param pt3 a SmallPoint3
      * @param o the orientation to interpret the board from
      */
-    void nullifyAt(Board& board, const SmallPoint3& pt3, const Orientation& o);
+    void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o);
     /**
      * This function will return the lowest available tier at the given pt2. Note,
      * the pt2.x will correspond to board's x-coordinate, and pt2.y will correspond
@@ -597,8 +591,8 @@ namespace Gungi
      * @return index of lowest available tier, if no tier is available returns NO_TIERS_FREE
      * @see NO_TIERS_FREE
      */
-    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2, 
-            const Orientation& o = Orientation::None);
+    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2, 
+            Orientation o = ORIENTATION_POS);
     /**
      * This function will return the lowest available tier at the given pt3. Note, the pt3
      * will 'collapse' to a SmalllPoint2 in this case as the y value of the pt3 is of no 
@@ -610,8 +604,8 @@ namespace Gungi
      * @return index of lowest available tier, if no tier is available returns NO_TIERS_FREE
      * @see NO_TIERS_FREE
      */
-    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, 
-            const Orientation& o = Orientation::None);
+    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3, 
+            Orientation o = ORIENTATION_POS);
     /**
      * This functions will return true if the board has an available tier at the given pt2.
      * The function will deal with negative to positive orientation conversion.
@@ -621,7 +615,7 @@ namespace Gungi
      * @return true if the given index has an open tier
      */
     bool hasOpenTierAt(const Board& board, const SmallPoint2& pt3, 
-            const Orientation& o = Orientation::None);
+            Orientation o = ORIENTATION_POS);
     /**
      * This functions will return true if the board has an available tier at the given pt3.
      * The function will deal with negative to positive orientation conversion.
@@ -631,7 +625,7 @@ namespace Gungi
      * @return true if the given index has an open tier
      */
     bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, 
-            const Orientation& o = Orientation::None);
+            Orientation o = ORIENTATION_POS);
 
     /**
      * This function will place the piece on board using the specified point. This function
@@ -652,7 +646,7 @@ namespace Gungi
      * @return the result of applying move to pt2
      */
     SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, 
-            const Orientation& o = Orientation::None);
+            Orientation o = ORIENTATION_POS);
 
     /**
      * This function will convert a pt3 and a move unto an index on the board. The
@@ -664,7 +658,7 @@ namespace Gungi
      * @return the result of applying move to pt3
      */
     SmallPoint2 genIndex2(const SmallPoint3& pt3, const Move& move, 
-            const Orientation& o = Orientation::None);
+            Orientation o = ORIENTATION_POS);
    
     /**
      * This function will generate a board state on the given set of indices using the filter
@@ -677,14 +671,30 @@ namespace Gungi
     BoardState genBoardState(const Board& board, const Indices3& indices, StateFilter filter);
 
     /**
-     * This method will evaluate if the given piece can be dropped('placed') at the given
-     * pt3 using the given orientation.
+     * This function will evaluate if the given piece can be dropped('placed') at the given
+     * pt3 using the given orientation. This function should be used during the placement phase of
+     * the game. There is another function for valid drops during the running phase.
      * @param board a game board
      * @param piece the piece
      * @param pt3 the desired pt3 to place the piece in
      * @param o the orientation in which to evaluate the piece
      * @return true if piece can be dropped on the specified pt3
+     * @see validRunningDrop
      */
-    bool validPlacementDrop(const Board& board, const Piece& piece, const SmallPoint3& pt3,
-            const Orientation o = Orientation::None);
+    bool validPlacementDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
+            Orientation o = ORIENTATION_POS);
+
+    /**
+     * This function will evaluate if the given piece can be dropped('placed') at the given
+     * pt3 using the given orientation. This function should be used during the running phase of
+     * the game. There is another function for valid drops during the placement phase.
+     * @param board a game board
+     * @param piece the piece
+     * @param pt3 the desired pt3 to place the piece in
+     * @param o the orientation in which to evaluate the piece
+     * @return true if piece can be dropped on the specified pt3
+     * @see validPlacementDrop
+     */
+    bool validRunningDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
+            Orientation o = ORIENTATION_POS);
 }

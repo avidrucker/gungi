@@ -69,9 +69,9 @@ namespace Gungi
             _nullPiece = true;
     }
 
-    void Piece::setSide(const bool& onHead)
+    void Piece::flip()
     {
-        _onHead = onHead;
+        _onHead = !_onHead;
     }
 
     const Head& Piece::getHead() const
@@ -92,41 +92,6 @@ namespace Gungi
     bool Piece::onHead() const
     {
         return _onHead;
-    }
-
-    IndexedPiece::IndexedPiece()
-    : Piece ()
-    , _idx  (UBD_PT3)
-    {}
-
-    IndexedPiece::IndexedPiece(const Head& head, const Tail& tail, const SmallPoint3& idx)
-    : Piece (head, tail)
-    , _idx  (idx)
-    {}
-
-    void IndexedPiece::setIndex(const SmallPoint3& idx)
-    {
-        _idx = idx;
-    }
-
-    const SmallPoint3& IndexedPiece::getIndex() const
-    {
-        return _idx;
-    }
-
-    bool IndexedPiece::isUnbounded() const
-    {
-        return _idx == UBD_PT3;
-    }
-
-    bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs)
-    {
-        return lhs._idx < rhs._idx;
-    }
-
-    bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs)
-    {
-        return (lhs._idx == rhs._idx) && (lhs._head == rhs._head) && (lhs._tail == rhs._tail);
     }
 
     bool isUnbounded(const SmallPoint2& pt)
@@ -206,32 +171,32 @@ namespace Gungi
 
     void initPieceSet(PieceSet& pieceSet)
     {
-       pieceSet.push_back(std::make_tuple(Piece(Head::Commander), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Captain, Tail::Pistol), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Captain, Tail::Pistol), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Samurai, Tail::Pike), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Samurai, Tail::Pike), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Ninja, Tail::Jounin), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Ninja, Tail::Jounin), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Ninja, Tail::Jounin), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Catapult, Tail::Lance), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Fortress, Tail::Lance), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::HiddenDragon, Tail::DragonKing), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Prodigy, Tail::Phoenix), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Archer, Tail::Arrow), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Archer, Tail::Arrow), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Gold), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Silver), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
-       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple(Piece(Head::Commander), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Captain, Tail::Pistol), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Captain, Tail::Pistol), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Samurai, Tail::Pike), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Samurai, Tail::Pike), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Ninja, Tail::Jounin), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Ninja, Tail::Jounin), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Ninja, Tail::Jounin), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Catapult, Tail::Lance), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Fortress, Tail::Lance), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::HiddenDragon, Tail::DragonKing), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Prodigy, Tail::Phoenix), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Archer, Tail::Arrow), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Archer, Tail::Arrow), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Gold), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Silver), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Soldier, Tail::Bronze), UBD_PT3));
     }
     
-    RankSize getHeadValue(const Piece& piece)
+    SizeType getHeadValue(const Piece& piece)
     {
         switch (piece.getHead())
         {
@@ -258,7 +223,7 @@ namespace Gungi
         }
     }
 
-    RankSize getTailValue(const Piece& piece)
+    SizeType getTailValue(const Piece& piece)
     {
         switch (piece.getTail())
         {
@@ -672,7 +637,6 @@ namespace Gungi
             default:
                 return moveset;
         }
-
         return moveset;
     }
 
@@ -766,54 +730,51 @@ namespace Gungi
                 (pt3.z + 1 - BOARD_DEPTH), pt3.y);
     }
 
-    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2)
+    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2)
     {
-        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
+        for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
             if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i)))
                 return i;
         return NO_TIERS_FREE;
     }
 
-    bool isNullAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
+    bool isNullAt(const Board& board, const SmallPoint3& pt3, Orientation o)
     {
-		if (o == Orientation::Positive || o == Orientation::None)
+		if (o == ORIENTATION_POS)
 			return board[pt3]->isNull();
 		return board[asPositive3(pt3)]->isNull();
     }
 
-    void nullifyAt(Board& board, const SmallPoint3& pt3, const Orientation& o)
+    void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o)
     {
-        if (o == Orientation::Positive || o == Orientation::None)
+        if (o == ORIENTATION_POS)
             board[pt3] = &NULL_PIECE;
         board[asPositive3(pt3)] = &NULL_PIECE;
     }
     
-    uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o)
+    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2, Orientation o)
     {
-		for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
+		for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
 		{
 			if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i), o))
-			{
 				return i;
-			}
-			std::cout << "Piece is not null here." << std::endl;
 		}
 			return NO_TIERS_FREE;
     }
 
-    uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
+    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3, Orientation o)
     {
         return availableTierAt(board, SmallPoint2(pt3.x, pt3.z), o);
     }
 
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o)
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2, Orientation o)
     {
         if (availableTierAt(board, pt2, o) == NO_TIERS_FREE)
             return false;
         return true;
     }
 
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, Orientation o)
     {
         if (availableTierAt(board, pt3, o) == NO_TIERS_FREE)
             return false;
@@ -826,9 +787,9 @@ namespace Gungi
         board[pt3] = &piece;
     }
 
-    SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, const Orientation& o)
+    SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, Orientation o)
     {
-        if (o == Orientation::Positive)
+        if (o == ORIENTATION_POS)
         {
             switch (move.getDirection())
             {
@@ -899,7 +860,7 @@ namespace Gungi
         return pt2;
     }
 
-    SmallPoint2 genIndex2(const SmallPoint3& pt3, const Move& move, const Orientation& o)
+    SmallPoint2 genIndex2(const SmallPoint3& pt3, const Move& move, Orientation o)
     {
         return genIndex2(SmallPoint2(pt3.x, pt3.z), move, o);
     }
@@ -908,23 +869,22 @@ namespace Gungi
     {
         BoardState state { BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, false };
         for (auto idx = indices.cbegin(); idx != indices.cend(); ++idx)
-            if (filter(*(board[*idx])))
+            if (filter(*idx, *(board[*idx])))
                     state[*idx] = true;
-        return state;
+        return std::move(state);
     }
 
-    bool validPlacementDrop(const Board& board, const Piece& piece, const SmallPoint3& pt3,
-            const Orientation o = Orientation::None)
+    bool validPlacementDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
+            Orientation o)
     {
-        
         // Better short-circuit Mr. Compiler
-        if ((o == Orientation::Positive || o == Orientation::None) && pt3.z >= VALID_PLCMT_DEPTH)
+        if ((o == ORIENTATION_POS) && pt3.z >= VALID_PLCMT_DEPTH)
             return false;
         
-        if (o == Orientation::Negative)
+        if (o == ORIENTATION_NEG)
         {
             pt3 = asPositive3(pt3);
-            if (!(pt3.z >= (BOARD_DEPTH - VALID_PLCMT_DEPTH)))
+            if (not(pt3.z >= (BOARD_DEPTH - VALID_PLCMT_DEPTH)))
                 return false;
         }
 
@@ -933,32 +893,31 @@ namespace Gungi
 
         if (piece.onHead() && piece.getHead() == Head::Soldier)
         {
-            if (o == Orientation::Postive)
+            if (o == ORIENTATION_POS)
             {
-                for (uint8_t i = 0u; i < VALID_PLCMT_DEPTH; ++i)
+                for (SizeType i = 0u; i < VALID_PLCMT_DEPTH; ++i)
                 {
-                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
+                    for (SizeType j = 0u; j < BOARD_HEIGHT; ++j)
                     {
                         pt3.z = i;
                         pt3.y = j;
-                        if (isNullAt(_gameBoard, pt3))
+                        if (isNullAt(board, pt3))
                             break;
 
-                        if (_gameBoard[pt3]->getHead() == Head::Soldier)
+                        if (board[pt3]->getHead() == Head::Soldier)
                             return false;
                     }
                 }
-
             }
             else
             {
-                for (uint8_t i = (BOARD_DEPTH - VALID_PLCMT_DEPTH); 
+                for (SizeType i = BOARD_DEPTH - VALID_PLCMT_DEPTH; 
                         i < BOARD_DEPTH; ++i)
                 {
-                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
+                    for (SizeType j = 0u; j < BOARD_HEIGHT; ++j)
                     {
                         SmallPoint3 tmp = { pt3.x, i, j };
-                        if (_gameBoard[tmp]->getHead() == Head::Soldier)
+                        if (board[tmp]->getHead() == Head::Soldier)
                             return false;
                     }
                 }
@@ -969,6 +928,12 @@ namespace Gungi
                 && availableTierAt(board, pt3) != 0)
             return false;
 
+        return true;
+    }
+
+    bool validRunningDrop(const Board& board, const Piece& piece, const SmallPoint3& pt3,
+            Orientation o)
+    {
         return true;
     }
 }

@@ -40,10 +40,8 @@ namespace Gungi
      */
     class Player
     {
-        using AccessType = uint8_t;
-
         public:
-            enum class Color : uint8_t { Black, White }; //Could grow
+            enum class Color : SizeType { Black, White }; //Could grow
             
             /**
              * This constructor will instantiate a player that points to game board.
@@ -52,7 +50,7 @@ namespace Gungi
              * @param color the color to set the player to
              * @param o the orientation in which the player will perceive the board
              */
-            Player(Board* gameBoard, const Color& color, const Orientation& o);
+            Player(Board* gameBoard, const Color& color, Orientation o);
 
             /**
              * This method will drop, or place, a piece on the board from the player's hand.
@@ -60,7 +58,7 @@ namespace Gungi
              * @param pt3 the point on the board to place the piece on
              * @return true if piece has been placed, false if couldn't.
              */
-            bool drop(const AccessType& idx, SmallPoint3 pt3);
+            bool drop(const SizeType& idx, SmallPoint3 pt3);
 
             /**
              * This method will shift a piece on the board to index generated from the move.
@@ -68,14 +66,14 @@ namespace Gungi
              * @param move the move being applied to the move
              * @return true if piece has been shifted, false if couldn't.
              */
-            bool shift(const AccessType& idx, const Move& move);
+            bool shift(const SizeType& idx, const Move& move);
             
             /**
              * This method will transfer a piece on the board to another player. 
              * @param idx the index of the piece of interest
              * @param player reference of the player to give the piece to
              */
-            void transfer(const AccessType& idx, Player& player);
+            void transfer(const SizeType& idx, Player& player);
 
             /**
              * This method will append a piece to the player's piece set.
@@ -88,14 +86,16 @@ namespace Gungi
              * @param i index of piece
              * @return a const reference to the piece at i
              */
-            const IndexedPiece& operator [] (const AccessType& i) const;
+            const IndexedPiece& operator [] (const SizeType& i) const;
+
+            const Piece& pieceFor(const SizeType &i) const;
 
             /**
              * This method accesses the player's piece set for it's SmallPoint3 index.
              * @param i index of piece
              * @return the point of the piece
              */
-            const SmallPoint3& indexFor(const AccessType& i) const;
+            const SmallPoint3& pointFor(const SizeType& i) const;
 
             /**
              * This method returns the color of the player.
@@ -113,34 +113,39 @@ namespace Gungi
              * This method returns the orientation of the player.
              * @return the orientation of the player
              */
-            const Orientation& getOrientation() const;
+            Orientation getOrientation() const;
 
             /**
              * This method returns the number of pieces that the player has on the board.
              * @return the number of pieces that the player has on board
              */
-            const uint8_t& onBoard() const;
+            const SizeType& onBoard() const;
             
             /**
              * This method returns the number of pieces that the player has on his/her hand.
              * @return the number of pieces that the player has on his/her hand.
              */
-            const uint8_t& onHand() const;
+            const SizeType& onHand() const;
 
             /**
              * This method returns the total number of pieces of the player.
              * @return the total number pieces of the player.
              */
-            const uint8_t& numPieces() const;
+            const SizeType& numPieces() const;
 
         private:
+            void _setIndex(const SizeType& i, const SmallPoint3& pt3);
+            void _nullifyIndex(const SizeType& i);
+            Piece& _pieceFor(const SizeType& i);
+            SmallPoint3& _pointFor(const SizeType& i);
+
             PieceSet _pieces; /**< Player's piece set. */
             Board* _gameBoard; /**< Pointer to the game board. */
             Color _color; /**< The color of the player. */
             Orientation _orientation; /**< The orientation of the player. */
-            uint8_t _onBoard; /**< Amount of player's pieces on board. */
-            uint8_t _onHand; /**< Amount of player's pieces on hand. */
-            uint8_t _numPieces; /**< Amount of player's pieces total. */
+            SizeType _onBoard; /**< Amount of player's pieces on board. */
+            SizeType _onHand; /**< Amount of player's pieces on hand. */
+            SizeType _numPieces; /**< Amount of player's pieces total. */
     };
 
     /**
@@ -149,8 +154,6 @@ namespace Gungi
      */
     class Game
     {
-        using AccessType = uint8_t;
-    
         public:
 
             /**
@@ -189,7 +192,7 @@ namespace Gungi
              * @param pt3 the desired pt3 to place the piece in
              * @return true if piece was successfully placed, false if not
              */
-            bool drop(const AccessType& i, const SmallPoint3& pt3);
+            bool drop(const SizeType& i, const SmallPoint3& pt3);
 
             /**
              * This method will apply a move to the piece at the given index.
@@ -197,7 +200,7 @@ namespace Gungi
              * @param move the move to apply to the piece
              * @return true if piece was successfully moved, false if not
              */
-            bool move(const AccessType& idx, const Move& move);
+            bool move(const SizeType& idx, const Move& move);
 
             /**
              * This method will return the current phase of the game.

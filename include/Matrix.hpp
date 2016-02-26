@@ -16,15 +16,9 @@
 
 #pragma once
 
-#include <MatrixUtility.hpp>
+#include <memory>
 
-/**
- * Notes:
- * 1. Make Matrix2/3 dynamic. Take notes out afterwards.
- * 2. Consider returning const SizeType& for the size getters if the matrix
- *      classes remain static.
- * 3. A point is an ordered pair or 2-tuple
- */
+#include <MatrixUtility.hpp>
 
 namespace Gungi
 {
@@ -41,7 +35,7 @@ namespace Gungi
     {
         using Ref        = T&;
         using ConstRef   = const T&;
-        using PtrType    = T*;
+        using PtrType    = std::unique_ptr<T[]>;
         using AccessType = Point2<SizeType>;
 
         public:
@@ -62,10 +56,13 @@ namespace Gungi
              */
             Matrix2(const SizeType& width, const SizeType& length, ConstRef initValue);
 
-            /**
-             * This destructor will free the memory used by the matrix.
-             */
-            ~Matrix2();
+            Matrix2(const Matrix2& rhs);
+
+            Matrix2(Matrix2&& rhs);
+
+            Matrix2& operator = (const Matrix2& rhs);
+
+            Matrix2& operator = (Matrix2&& rhs);
 
             /**
              * This method returns the width(x, or cols) of the matrix.
@@ -153,7 +150,7 @@ namespace Gungi
     {
         using Ref      = T&;
         using ConstRef = const T&;
-        using PtrType  = T*;
+        using PtrType  = std::unique_ptr<T[]>;
         using AccessType = Point3<SizeType>;
 
         public:
@@ -178,11 +175,13 @@ namespace Gungi
             Matrix3(const SizeType& width, const SizeType& depth, 
                     const SizeType& height, ConstRef initValue);
 
-            /**
-             * This destructor will free the memory used by the matrix.
-             */
-            ~Matrix3();
+            Matrix3(const Matrix3& rhs);
 
+            Matrix3(Matrix3&& rhs);
+
+            Matrix3& operator = (const Matrix3& rhs);
+
+            Matrix3& operator = (Matrix3&& rhs);
 
             /**
              * This method returns the width(x) of the matrix.
@@ -270,27 +269,47 @@ namespace Gungi
     Matrix2<T, SizeType>::Matrix2(const SizeType& width, const SizeType& length)
     : _width  (width)
     , _length (length)
-    , _matrix (new T[width * length])
+    , _matrix (std::make_unique<T[]>(width * length))
     {}
 
     template <class T, class SizeType>
     Matrix2<T, SizeType>::Matrix2(const SizeType& width, const SizeType& length, ConstRef initValue)
     : _width  (width)
     , _length (length)
-    , _matrix (new T[width * length])
+    , _matrix (std::make_unique<T[]>(width * length))
     {
         for (SizeType i = 0; i < getSize(); ++i)
             _matrix[i] = initValue;
     }
 
     template <class T, class SizeType>
-    Matrix2<T, SizeType>::~Matrix2()
+    Matrix2<T, SizeType>::Matrix2(const Matrix2& rhs)
+    : _width  (rhs._width)
+    , _length (rhs._length)
+    , _matrix (std::move(rhs._matrix))
+    {}
+
+    template <class T, class SizeType>
+    Matrix2<T, SizeType>::Matrix2(Matrix2&& rhs)
+    : _width  (rhs._width)
+    , _length (rhs._length)
+    , _matrix (std::move(rhs._matrix))
+    {}
+
+    template <class T, class SizeType>
+    Matrix2<T, SizeType>& Matrix2<T, SizeType>::operator = (const Matrix2& rhs)
     {
-        if (_matrix != nullptr)
-        {
-            delete [] _matrix;
-            _matrix = nullptr;
-        }
+        _width  = rhs._width;
+        _length = rhs._length;
+        _matrix = std::move(rhs._matrix);
+    }
+
+    template <class T, class SizeType>
+    Matrix2<T, SizeType>& Matrix2<T, SizeType>::operator = (Matrix2&& rhs)
+    {
+        _width  = rhs._width;
+        _length = rhs._length;
+        _matrix = std::move(rhs._matrix);
     }
 
     template <class T, class SizeType>
@@ -357,7 +376,7 @@ namespace Gungi
     : _width  (width)
     , _depth  (depth)
     , _height (height)
-    , _matrix (new T[width * depth * height])
+    , _matrix (std::make_unique<T[]>(width * depth * height))
     {}
 
     template <class T, class SizeType>
@@ -366,20 +385,44 @@ namespace Gungi
     : _width  (width)
     , _depth  (depth)
     , _height (height)
-    , _matrix (new T[width * depth * height])
+    , _matrix (std::make_unique<T[]>(width * depth * height))
     {
         for (SizeType i = 0u; i < getSize(); ++i)
             _matrix[i] = initValue;
     }
 
     template <class T, class SizeType>
-    Matrix3<T, SizeType>::~Matrix3()
+    Matrix3<T, SizeType>::Matrix3(const Matrix3& rhs)
+    : _width  (rhs._width)
+    , _depth  (rhs._depth)
+    , _height (rhs._height)
+    , _matrix (std::move(rhs._matrix))
+    {}
+
+    template <class T, class SizeType>
+    Matrix3<T, SizeType>::Matrix3(Matrix3&& rhs)
+    : _width  (rhs._width)
+    , _depth  (rhs._depth)
+    , _height (rhs._height)
+    , _matrix (std::move(rhs._matrix))
+    {}
+
+    template <class T, class SizeType>
+    Matrix3<T, SizeType>& Matrix3<T, SizeType>::operator = (const Matrix3& rhs)
     {
-        if (_matrix != nullptr)
-        {
-            delete [] _matrix;
-            _matrix = nullptr;
-        }
+        _width  = rhs._width;
+        _depth  = rhs._depth;
+        _height = rhs._height;
+        _matrix = std::move(rhs._matrix);
+    }
+
+    template <class T, class SizeType>
+    Matrix3<T, SizeType>& Matrix3<T, SizeType>::operator = (Matrix3&& rhs)
+    {
+        _width  = rhs._width;
+        _depth  = rhs._depth;
+        _height = rhs._height;
+        _matrix = std::move(rhs._matrix);
     }
 
     template <class T, class SizeType>
