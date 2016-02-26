@@ -66,8 +66,8 @@ namespace Gungi
          */
         Point3(const SizeType& a, const SizeType& b, const SizeType& c)
         : x (a)
-        , z (c)
-        , y (b)
+        , z (b)
+        , y (c)
         {}
 
         /**
@@ -127,7 +127,7 @@ namespace Gungi
     SizeType coorToIndex(const SizeType& x, const SizeType& z, const SizeType& y, 
             const SizeType& width, const SizeType& depth)
     {
-        return (y * width * depth) + (z * width) + y;
+        return (y * width * depth) + (z * width) + x;
     }
 
     /**

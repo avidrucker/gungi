@@ -720,50 +720,50 @@ namespace Gungi
 
     SmallPoint2 asPositive2(const SmallPoint2& pt2)
     {
-        return SmallPoint2((BOARD_WIDTH - pt2.x),
-                (BOARD_DEPTH - pt2.y));
+        return SmallPoint2((BOARD_WIDTH - pt2.x - 1),
+                (BOARD_DEPTH - pt2.y - 1));
     }
 
     SmallPoint2 asNegative2(const SmallPoint2& pt2)
     {
-        return SmallPoint2((pt2.x - BOARD_WIDTH),
-                (pt2.y - BOARD_DEPTH));
+        return SmallPoint2((pt2.x + 1 - BOARD_WIDTH),
+                (pt2.y + 1 - BOARD_DEPTH));
     }
 
     SmallPoint2 asPositive2(const SmallPoint3& pt3)
     {
-        return SmallPoint2((BOARD_WIDTH - pt3.x),
-                (BOARD_DEPTH - pt3.z));
+        return SmallPoint2((BOARD_WIDTH - pt3.x - 1),
+                (BOARD_DEPTH - pt3.z - 1));
     }
 
     SmallPoint2 asNegative2(const SmallPoint3& pt3)
     {
-        return SmallPoint2((pt3.x - BOARD_WIDTH),
-                (pt3.z - BOARD_DEPTH));
+        return SmallPoint2((pt3.x + 1 - BOARD_WIDTH),
+                (pt3.z + 1 - BOARD_DEPTH));
     }
 
     SmallPoint3 asPositive3(const SmallPoint2& pt2)
     {
-        return SmallPoint3((BOARD_WIDTH - pt2.x),
-                (BOARD_DEPTH - pt2.y), 0u);
+        return SmallPoint3((BOARD_WIDTH - pt2.x - 1),
+                (BOARD_DEPTH - pt2.y - 1), 0);
     }
 
     SmallPoint3 asNegative3(const SmallPoint2& pt2)
     {
-        return SmallPoint3((pt2.x - BOARD_WIDTH),
-                (pt2.y - BOARD_DEPTH), 0u);
+        return SmallPoint3((pt2.x + 1 - BOARD_WIDTH),
+                (pt2.y + 1 - BOARD_DEPTH), 0);
     }
 
     SmallPoint3 asPositive3(const SmallPoint3& pt3)
     {
-        return SmallPoint3((BOARD_WIDTH - pt3.x),
-                (BOARD_DEPTH - pt3.z), 0u);
+        return SmallPoint3((BOARD_WIDTH - pt3.x - 1),
+                (BOARD_DEPTH - pt3.z - 1), pt3.y);
     }
 
     SmallPoint3 asNegative3(const SmallPoint3& pt3)
     {
-        return SmallPoint3((pt3.x - BOARD_WIDTH),
-                (pt3.z - BOARD_DEPTH), 0u);
+        return SmallPoint3((pt3.x  + 1 - BOARD_WIDTH),
+                (pt3.z + 1 - BOARD_DEPTH), pt3.y);
     }
 
     uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2)
@@ -776,9 +776,9 @@ namespace Gungi
 
     bool isNullAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)
     {
-        if (o == Orientation::Positive || o == Orientation::None)
-            return board[pt3] == &NULL_PIECE;
-        return board[asPositive3(pt3)] == &NULL_PIECE;
+		if (o == Orientation::Positive || o == Orientation::None)
+			return board[pt3]->isNull();
+		return board[asPositive3(pt3)]->isNull();
     }
 
     void nullifyAt(Board& board, const SmallPoint3& pt3, const Orientation& o)
@@ -790,10 +790,15 @@ namespace Gungi
     
     uint8_t availableTierAt(const Board& board, const SmallPoint2& pt2, const Orientation& o)
     {
-        for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
-            if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i), o))
-                return i;
-        return NO_TIERS_FREE;
+		for (uint8_t i = 0; i < BOARD_HEIGHT; ++i)
+		{
+			if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i), o))
+			{
+				return i;
+			}
+			std::cout << "Piece is not null here." << std::endl;
+		}
+			return NO_TIERS_FREE;
     }
 
     uint8_t availableTierAt(const Board& board, const SmallPoint3& pt3, const Orientation& o)

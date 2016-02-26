@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <iostream> // For Debugging
 #include <Matrix.hpp>
 #include <Protocol.hpp>
 
@@ -25,6 +24,10 @@
  * 1. Consider making color and orientation constant for player.
  * 2. Consider placing a piece on the parameter of validPlacementDrop instead
  *      of current player's index.
+ * 3. Pieces with pieces out of bounds still get nullified, and placed.
+ * 4. Check for dropping same piece twice.
+ * 5. Consider moving the validators to Protocol since it's part of the ruleset
+ * 6. Add ability to check if all of a player's pieces have been placed on board.
  */
 
 namespace Gungi
@@ -139,8 +142,9 @@ namespace Gungi
             ~Game();
 
             /**
-             * This will increment the phase from standby to placement. If phase is not in 
-             * standby, nothing happens. The method will also set current player * to player one.
+             * This will increment the phase from standby to placement, or from placement
+             * to start. If phase is running nothing happens. 
+             * The method will also set current player * to player one.
              */
             void start();
 
@@ -203,11 +207,7 @@ namespace Gungi
              */
             bool _running() const;
 
-            /**
-             * This method returns true if the current player's turn belongs to player one.
-             * @return true if it is player one's turn to move
-             */
-            bool _onesTurn;
+            bool _onesTurn; /**< Flag indicating player one's turn. */
             Board _gameBoard; /**< The game board. */
             Player _one; /**< Player one. */
             Player _two; /**< Player two. */

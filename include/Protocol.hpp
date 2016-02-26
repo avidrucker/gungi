@@ -21,14 +21,15 @@
 
 #include <Matrix.hpp>
 
+#include <iostream> // For debugging
+
 /**
  * Notes: 
  * 1. Consider making IndexedPiece a std::tuple< Piece, SmallPoint3>;
  *      Having an IndexedPiece container seems like poor design to me.
  * 2. Consider making a Piece Head,Tail as const.
  * 3. Consider removing setSide from Piece in favor of a flip() function.
- * 4. Consider creating adding a None constant Orientation, so that functions
- *      could know if orientation is of no interest.
+ * 4. Consider storing pieces on a 32-bit int where bits correspnof to piece.
  */
 
 namespace Gungi
@@ -212,6 +213,11 @@ namespace Gungi
              * @param onHead true if piece is on head side
              */
             void setSide(const bool& onHead);
+            
+            /**
+             * This method will flip the side of the piece.
+             */
+            void flip();
 
             /**
              * This method returns the head value.
