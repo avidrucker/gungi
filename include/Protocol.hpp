@@ -18,10 +18,9 @@
 
 #include <cstdint>
 #include <vector>
+#include <tuple>
 
 #include <Matrix.hpp>
-
-#include <iostream> // For debugging
 
 /**
  * Notes: 
@@ -30,12 +29,12 @@
  * 2. Consider making a Piece Head,Tail as const.
  * 3. Consider removing setSide from Piece in favor of a flip() function.
  * 4. Consider storing pieces on a 32-bit int where bits correspnof to piece.
+ * 5. Make orientation bools, enums are a waste, da fuq is this
  */
 
 namespace Gungi
 {
     class Move;
-    class IndexedPiece;
     
     constexpr uint8_t BOARD_WIDTH        = 9; /**< Standard Gungi board width (Cols). */
     constexpr uint8_t BOARD_DEPTH        = 9; /** Standard Gungi board depth (Rows). */
@@ -68,12 +67,13 @@ namespace Gungi
     constexpr uint8_t BRONZE_RANK        = 2; /**< Rank value of bronze. */
     constexpr uint8_t NO_TAIL            = 0; /**< Indicates piece wihout tail.*/
 
-    using RankSize    = uint8_t;
-    using SmallPoint2 = Point2<uint8_t>;
-    using SmallPoint3 = Point3<uint8_t>;
-    using MoveSet     = std::vector<Move>;
-    using PieceSet    = std::vector<IndexedPiece>;
-    using Board       = Matrix3<const IndexedPiece*, uint8_t>;
+    using RankSize     = uint8_t;
+    using SmallPoint2  = Point2<uint8_t>;
+    using SmallPoint3  = Point3<uint8_t>;
+    using MoveSet      = std::vector<Move>;
+    using IndexedPiece = std::tuple<Piece, SmallPoint3>;
+    using PieceSet     = std::vector<IndexedPiece>;
+    using Board        = Matrix3<const Piece*, uint8_t>;
 
     /**
      * Enum that stores possible board orientations. Positive indicates
@@ -250,65 +250,7 @@ namespace Gungi
             bool _onHead; /**< On head flag. */
     };
     
-    /**
-     * This class inherits from Piece and binds an three-dimensional index to the piece.
-     * This class should complement a three-dimensional matrix of IndexedPiece.
-     * Initial index is unbounded. 
-     * @see Piece
-     */
-    class IndexedPiece : public Piece
-    {
-        public:
-
-            /**
-             * This constructor will instantiate a piece and bind it to an unbounded index.
-             */
-            IndexedPiece();
-
-            /**
-             * This constructor will instatiate a piece with given Head and Tail values
-             * and by default will set the index to an unbounded point.
-             * @param head the desired head value
-             * @param tail the desired tail value
-             * @param idx the desired initial index for the piece
-             */
-            IndexedPiece(const Head& head, const Tail& tail = Tail::None, 
-                    const SmallPoint3& idx = UBD_PT3);
-
-            /**
-             * This method will set the index of the piece.
-             * @param idx the desired index of the piece.
-             */
-            void setIndex(const SmallPoint3& idx);
-
-            /**
-             * This method will return the index of the piece.
-             * @return a const reference to the piece's index
-             */
-            const SmallPoint3& getIndex() const;
-
-            /**
-             * @return true if piece is unbounded.
-             */
-            bool isUnbounded() const;
-
-            /**
-             * This method is a convenience < operator that used the < operator of the 
-             * indexing type.
-             */
-            friend bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs);
-
-            /**
-             * This method is a convenience == operator that used the == operator of the 
-             * indexing type.
-             */
-            friend bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs);
-            
-        private:
-            SmallPoint3 _idx; /**< The index of the piece. */
-    };
-
-    const IndexedPiece NULL_PIECE { Head::None, Tail::None }; /**< An unbounded null piece. */
+    const Piece NULL_PIECE { Head::None, Tail::None }; /**< A null piece. */
 
     /**
      * This convenience operator overload increments a tier enum.
@@ -346,7 +288,7 @@ namespace Gungi
 
     using BoardState = Matrix3<bool, uint8_t>;
     using Indices3 = std::vector<SmallPoint3>;
-    using StateFilter = bool(*)(const IndexedPiece&);
+    using StateFilter = bool(*)(const SmallPoint3& pt3, const Piece&);
 
     /**
      * This function will initialize a PieceSet to the standard pieces distributed to a
@@ -692,12 +634,15 @@ namespace Gungi
             const Orientation& o = Orientation::None);
 
     /**
-     * This function will 'place' the piece on the board using its' index.
+     * This function will place the piece on board using the specified point. This function
+     * will collapse the piece unto the lowest available tier. If there are no open tiers,
+     * this function does nothing.
      * @param board a board to modify
-     * @param piece a piece to set
+     * @param piece a piece to place
+     * @param pt3 point to place piece in
      */
-    void placeAt(Board& board, const IndexedPiece* piece);
-    
+    void placeAt(Board& board, const Piece& piece, SmallPoint3 pt3);
+
     /**
      * This function will convert a pt2 and a move unto an index on the board.
      * The function will deal with negative to positive orientation conversion.
@@ -730,4 +675,16 @@ namespace Gungi
      * @return the BoardState after applying the filter function
      */
     BoardState genBoardState(const Board& board, const Indices3& indices, StateFilter filter);
+
+    /**
+     * This method will evaluate if the given piece can be dropped('placed') at the given
+     * pt3 using the given orientation.
+     * @param board a game board
+     * @param piece the piece
+     * @param pt3 the desired pt3 to place the piece in
+     * @param o the orientation in which to evaluate the piece
+     * @return true if piece can be dropped on the specified pt3
+     */
+    bool validPlacementDrop(const Board& board, const Piece& piece, const SmallPoint3& pt3,
+            const Orientation o = Orientation::None);
 }

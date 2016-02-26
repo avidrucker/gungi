@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include <Matrix.hpp>
 #include <Protocol.hpp>
 
@@ -24,10 +26,10 @@
  * 1. Consider making color and orientation constant for player.
  * 2. Consider placing a piece on the parameter of validPlacementDrop instead
  *      of current player's index.
- * 3. Pieces with pieces out of bounds still get nullified, and placed.
- * 4. Check for dropping same piece twice.
+ * 3. Pieces with pieces out of bounds still get nullified, and placed. DONE
+ * 4. Check for dropping same piece twice. DONE
  * 5. Consider moving the validators to Protocol since it's part of the ruleset
- * 6. Add ability to check if all of a player's pieces have been placed on board.
+ * 6. Add ability to check if all of a player's pieces have been placed on board. DONE
  */
 
 namespace Gungi
@@ -108,16 +110,37 @@ namespace Gungi
             const PieceSet& getFullSet() const;
 
             /**
-             * This method returns the orienation of the player.
-             * @return the orienation of the player
+             * This method returns the orientation of the player.
+             * @return the orientation of the player
              */
             const Orientation& getOrientation() const;
+
+            /**
+             * This method returns the number of pieces that the player has on the board.
+             * @return the number of pieces that the player has on board
+             */
+            const uint8_t& onBoard() const;
+            
+            /**
+             * This method returns the number of pieces that the player has on his/her hand.
+             * @return the number of pieces that the player has on his/her hand.
+             */
+            const uint8_t& onHand() const;
+
+            /**
+             * This method returns the total number of pieces of the player.
+             * @return the total number pieces of the player.
+             */
+            const uint8_t& numPieces() const;
 
         private:
             PieceSet _pieces; /**< Player's piece set. */
             Board* _gameBoard; /**< Pointer to the game board. */
             Color _color; /**< The color of the player. */
             Orientation _orientation; /**< The orientation of the player. */
+            uint8_t _onBoard; /**< Amount of player's pieces on board. */
+            uint8_t _onHand; /**< Amount of player's pieces on hand. */
+            uint8_t _numPieces; /**< Amount of player's pieces total. */
     };
 
     /**
@@ -182,16 +205,6 @@ namespace Gungi
              */
             const Phase& getPhase() const;
 
-            /**
-             * This method will evaluate if the given piece can be dropped('placed') at the given
-             * pt3 using the given orientation.
-             * @param i the index of the current player's piece in his/her piece set
-             * @param pt3 the desired pt3 to place the piece in
-             * @param o the orientation in which to evaluate the piece
-             * @return true if piece can be dropped on the specified pt3
-             */
-            bool validPlacementDrop(const AccessType& i, SmallPoint3 pt3,
-                    const Orientation& o) const;
         private:
 
             /**

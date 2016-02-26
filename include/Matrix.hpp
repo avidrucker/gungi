@@ -18,8 +18,6 @@
 
 #include <MatrixUtility.hpp>
 
-#include <iostream> // For debugging
-
 /**
  * Notes:
  * 1. Make Matrix2/3 dynamic. Take notes out afterwards.

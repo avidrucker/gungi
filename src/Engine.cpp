@@ -22,39 +22,28 @@ namespace Gungi
     : _gameBoard    (gameBoard)
     , _color        (color)
     , _orientation  (o)
+    , _onBoard      (0)
+    , _onHand       (23)
+    , _numPieces    (23)
     {
        initPieceSet(_pieces);
     }
 
     bool Player::drop(const AccessType& i, SmallPoint3 pt3)
     {
-        std::cout << "P Inside drop function" << std::endl;
-
-        if (!_pieces[i].isUnbounded())
-            nullifyAt(*_gameBoard, _pieces[i].getIndex(), getOrientation()); 
-         
-        std::cout << "P Index has been nullified." << std::endl;
-
-        auto tmp = availableTierAt(*_gameBoard, pt3, getOrientation());
-		std::cout << "P Free tiers count: " << (size_t) tmp << std::endl;
-		if (tmp == NO_TIERS_FREE)
+        if (not(_pieces[i].isUnbounded()))
             return false;
 
-        std::cout << "P Tier avaialable at: " << tmp << std::endl;
+        if (not(validPlacementDrop(*_gameBoard, _pieces[i], pt3, _orientation))
+            return false;
+         
 
         if (getOrientation() == Orientation::Negative)
             pt3 = asPositive3(pt3);
-
-        std::cout << "P Converted pt3 to postive if needed." << std::endl;
         
         pt3.y = tmp;
         _pieces[i].setIndex(pt3);
         placeAt(*_gameBoard, &_pieces[i]);
-        std::cout << "P Piece placed." << std::endl;
-        auto p = _pieces[i].getIndex();
-        std::cout << "P Piece Index: (" << (size_t) p.x << ", " << (size_t) p.z 
-            << ", " << (size_t) p.y << ")" << std::endl;
-        std::cout << "P Is null there: " << isNullAt(*_gameBoard, p) << std::endl;
         return true;
     }
 
@@ -88,6 +77,7 @@ namespace Gungi
     void Player::append(IndexedPiece pc)
     {
         pc.setIndex(SmallPoint3(UNBOUNDED, UNBOUNDED, UNBOUNDED));
+        pc.flip();
         _pieces.push_back(pc);
     }
 
@@ -114,6 +104,20 @@ namespace Gungi
     const Orientation& Player::getOrientation() const
     {
         return _orientation;
+    }
+
+    const uint8_t& Player::onBoard() const
+    {
+        return _onBoard;
+    }
+    const uint8_t& Player::onHand() const
+    {
+        return _onHand;
+    }
+
+    const uint8_t& Player::numPieces() const
+    {
+        return _numPieces;
     }
 
     Game::Game()
@@ -154,20 +158,10 @@ namespace Gungi
         if (_phase == Phase::Standby)
             return false;
 
-		std::cout << "G Phase is not standby." << std::endl;
-		std::cout << "Pt is (" << (size_t) pt.x << ", " << (size_t) pt.z << ", " << (size_t) pt.y 
-			<< ")." << std::endl;
-        if (validPlacementDrop(i, pt, _currentPlayer->getOrientation()))
-        {
-			std::cout << "G Placement was valid." << std::endl;
-            _currentPlayer->drop(i, pt);
+        bool result = _currentPlayer->drop(i, pt)
+        if (result)
             _flipPlayer();
-            return true;
-        }
-
-		std::cout << "G Place was invalid." << std::endl;
-
-        return false;
+        return result;
     }
 
     bool Game::move(const AccessType& idx, const Move& move)
@@ -191,71 +185,6 @@ namespace Gungi
     {
         _currentPlayer = _onesTurn ? &_two : &_one;
         _onesTurn = !_onesTurn;
-    }
-
-    bool Game::validPlacementDrop(const AccessType& i, SmallPoint3 pt3,
-            const Orientation& o) const
-    {
-        auto pieceSet = _currentPlayer->getFullSet();
-        auto piece = pieceSet[i];
-
-		std::cout << "V Inside validPlacementDrop" << std::endl;
-
-        if (_currentPlayer->getOrientation() == Orientation::Positive)
-        {
-			std::cout << "V Player Orientation is positive." << std::endl;
-            if (pt3.z >= VALID_PLCMT_DEPTH)
-                return false;
-            
-			std::cout << "V Pc's Z: " << (size_t) pt3.z << " is >= " << (size_t) VALID_PLCMT_DEPTH << std::endl;
-            if (piece.getHead() == Head::Soldier)
-            {
-				std::cout << "V Piece is a soldier." << std::endl;
-                for (uint8_t i = 0u; i < VALID_PLCMT_DEPTH; ++i)
-                {
-                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
-                    {
-                        pt3.z = i;
-                        pt3.y = j;
-                        if (isNullAt(_gameBoard, pt3))
-                            break;
-
-                        if (_gameBoard[pt3]->getHead() == Head::Soldier)
-                            return false;
-                    }
-                }
-				std::cout << "Soldier can be placed here." << std::endl;
-            }
-        }
-        else
-        {
-			std::cout << "V Player Orientation is negative." << std::endl;
-			pt3 = asPositive3(pt3);
-			std::cout << "V Pt is now (" << (size_t) pt3.x << ", " << (size_t) pt3.z << ", " << 
-				(size_t) pt3.y << ")" << std::endl;
-			if (!(pt3.z >= (BOARD_DEPTH - VALID_PLCMT_DEPTH)))
-                return false; 
-
-			std::cout << "V Pc's Z: " << (size_t) pt3.z << " is >= " << (size_t) (BOARD_DEPTH - VALID_PLCMT_DEPTH) << 
-				" && " << " < " << (size_t) BOARD_DEPTH << std::endl;
-
-            if (piece.getHead() == Head::Soldier)
-            {
-				std::cout << "V Piece is a soldier." << std::endl;
-                for (uint8_t i = (BOARD_DEPTH - VALID_PLCMT_DEPTH); 
-                        i < BOARD_DEPTH; ++i)
-                {
-                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
-                    {
-                        SmallPoint3 tmp = { pt3.x, i, j };
-                        if (_gameBoard[tmp]->getHead() == Head::Soldier)
-                            return false;
-                    }
-                }
-						std::cout << "Soldier can be placed here." << std::endl;
-            }
-        }
-        return true;
     }
 
     bool Game::_running() const

@@ -206,29 +206,29 @@ namespace Gungi
 
     void initPieceSet(PieceSet& pieceSet)
     {
-       pieceSet.push_back(IndexedPiece(Head::Commander));
-       pieceSet.push_back(IndexedPiece(Head::Captain, Tail::Pistol));
-       pieceSet.push_back(IndexedPiece(Head::Captain, Tail::Pistol));
-       pieceSet.push_back(IndexedPiece(Head::Samurai, Tail::Pike));
-       pieceSet.push_back(IndexedPiece(Head::Samurai, Tail::Pike));
-       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
-       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
-       pieceSet.push_back(IndexedPiece(Head::Ninja, Tail::Jounin));
-       pieceSet.push_back(IndexedPiece(Head::Catapult, Tail::Lance));
-       pieceSet.push_back(IndexedPiece(Head::Fortress, Tail::Lance));
-       pieceSet.push_back(IndexedPiece(Head::HiddenDragon, Tail::DragonKing));
-       pieceSet.push_back(IndexedPiece(Head::Prodigy, Tail::Phoenix));
-       pieceSet.push_back(IndexedPiece(Head::Archer, Tail::Arrow));
-       pieceSet.push_back(IndexedPiece(Head::Archer, Tail::Arrow));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Gold));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Silver));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
-       pieceSet.push_back(IndexedPiece(Head::Soldier, Tail::Bronze));
+       pieceSet.push_back(std::make_tuple(Piece(Head::Commander), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Captain, Tail::Pistol), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Captain, Tail::Pistol), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Samurai, Tail::Pike), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Samurai, Tail::Pike), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Ninja, Tail::Jounin), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Ninja, Tail::Jounin), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Ninja, Tail::Jounin), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Catapult, Tail::Lance), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Fortress, Tail::Lance), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::HiddenDragon, Tail::DragonKing), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Prodigy, Tail::Phoenix), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Archer, Tail::Arrow), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Archer, Tail::Arrow), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Gold), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Silver), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
+       pieceSet.push_back(std::make_tuple((Head::Soldier, Tail::Bronze), UBD_PT3);
     }
     
     RankSize getHeadValue(const Piece& piece)
@@ -820,9 +820,10 @@ namespace Gungi
         return true;
     }
 
-    void placeAt(Board& board, const IndexedPiece* piece)
+    void placeAt(Board& board, const Piece& piece, SmallPoint3 pt3)
     {
-        board[piece->getIndex()] = piece;
+        pt3.y = availableTierAt(board, pt3);
+        board[pt3] = &piece;
     }
 
     SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, const Orientation& o)
@@ -910,5 +911,64 @@ namespace Gungi
             if (filter(*(board[*idx])))
                     state[*idx] = true;
         return state;
+    }
+
+    bool validPlacementDrop(const Board& board, const Piece& piece, const SmallPoint3& pt3,
+            const Orientation o = Orientation::None)
+    {
+        
+        // Better short-circuit Mr. Compiler
+        if ((o == Orientation::Positive || o == Orientation::None) && pt3.z >= VALID_PLCMT_DEPTH)
+            return false;
+        
+        if (o == Orientation::Negative)
+        {
+            pt3 = asPositive3(pt3);
+            if (!(pt3.z >= (BOARD_DEPTH - VALID_PLCMT_DEPTH)))
+                return false;
+        }
+
+        if (availableTierAt(board, pt3) == NO_TIERS_FREE)
+            return false;
+
+        if (piece.onHead() && piece.getHead() == Head::Soldier)
+        {
+            if (o == Orientation::Postive)
+            {
+                for (uint8_t i = 0u; i < VALID_PLCMT_DEPTH; ++i)
+                {
+                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
+                    {
+                        pt3.z = i;
+                        pt3.y = j;
+                        if (isNullAt(_gameBoard, pt3))
+                            break;
+
+                        if (_gameBoard[pt3]->getHead() == Head::Soldier)
+                            return false;
+                    }
+                }
+
+            }
+            else
+            {
+                for (uint8_t i = (BOARD_DEPTH - VALID_PLCMT_DEPTH); 
+                        i < BOARD_DEPTH; ++i)
+                {
+                    for (uint8_t j = 0u; j < BOARD_HEIGHT; ++j)
+                    {
+                        SmallPoint3 tmp = { pt3.x, i, j };
+                        if (_gameBoard[tmp]->getHead() == Head::Soldier)
+                            return false;
+                    }
+                }
+            }
+        }
+
+        if (piece.onHead() && (piece.getHead() == Head::Catapult || piece.getHead() == Head::Catapult)
+                && availableTierAt(board, pt3) != 0)
+            return false;
+
+        return true;
     }
 }
