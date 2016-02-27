@@ -94,15 +94,23 @@ namespace Gungi
         return _onHead;
     }
 
+    bool Piece::dropStackable() const
+    {
+        if (!_onHead)
+            return false;
+        return _head == Head::Catapult || _head == Head::Fortress ||
+            _head == Head::Ninja || _head == Head::Jounin || _nullPiece;
+    }
+
     bool isUnbounded(const SmallPoint2& pt)
     {
-        return pt.x == UNBOUNDED && pt.y == UNBOUNDED;
+        return pt.x == UNBOUNDED || pt.y == UNBOUNDED;
     }
 
     bool isUnbounded(const SmallPoint3& pt)
     {
-        return pt.x == UNBOUNDED && pt.z == UNBOUNDED
-            && pt.y == UNBOUNDED;
+        return pt.x == UNBOUNDED || pt.z == UNBOUNDED
+            || pt.y == UNBOUNDED;
     }
 
     Tier& operator ++(Tier& tier)
@@ -748,8 +756,8 @@ namespace Gungi
     void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o)
     {
         if (o == ORIENTATION_POS)
-            board[pt3] = &NULL_PIECE;
-        board[asPositive3(pt3)] = &NULL_PIECE;
+            board[pt3].reset(&NULL_PIECE);
+        board[asPositive3(pt3)].reset(&NULL_PIECE);
     }
     
     SizeType availableTierAt(const Board& board, const SmallPoint2& pt2, Orientation o)
@@ -781,97 +789,171 @@ namespace Gungi
         return true;
     }
 
+    bool towerMeets(const Board& board, const SmallPoint2& pt2, TierFilter filter,
+            Orientation o = ORIENTATION_POS)
+    {
+        for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
+        {
+            SmallPoint3 pt3 { pt2.x, pt2.y, i };
+            if (!filter(i, *(board[pt3])))
+                return false;
+        }
+        return true;
+    }
+
+    bool towerMeets(const Board& board, SmallPoint3 pt3, TierFilter filter,
+            Orientation o = ORIENTATION_POS)
+    {
+        for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
+        {
+            pt3.y = i;
+            if (!filter(i, *(board[pt3])))
+                return false;
+        }
+        return true;
+    }
+
     void placeAt(Board& board, const Piece& piece, SmallPoint3 pt3)
     {
         pt3.y = availableTierAt(board, pt3);
-        board[pt3] = &piece;
+        board[pt3].reset(&piece);
     }
 
-    SmallPoint2 genIndex2(SmallPoint2 pt2, const Move& move, Orientation o)
+    Indices2 genIndices2(SmallPoint2 pt2, const Move& move, Orientation o = ORIENTATION_POS)
     {
-        if (o == ORIENTATION_POS)
+        Indices2 indices;
+        
+        if (move.getMagnitude() == UNBOUNDED) // N-range moves
         {
-            switch (move.getDirection())
+            if (o == ORIENTATION_POS)
             {
-                case Direction::NW:
-                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::N:
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::NE:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::E:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    break;
-                case Direction::SE:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
-                    break;
-                case Direction::S:
-                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
-                    break;
-                case Direction::SW:
-                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
-                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
-                    break;
-                case Direction::W:
-                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
-                    break;
+                switch (move.getDirection())
+                {
+                    case Direction::NW:
+                        while (
+                        break;
+                    case Direction::N:
+                        break;
+                    case Direction::NE:
+                        break;
+                    case Direction::E:
+                        break;
+                    case Direction::SE:
+                        break;
+                    case Direction::S:
+                        break;
+                    case Direction::SW:
+                        break;
+                    case Direction::W:
+                        break;
+                }
+            }
+            else
+            {
+                switch (move.getDirection())
+                {
+                    case Direction::NW:
+                        break;
+                    case Direction::N:
+                        break;
+                    case Direction::NE:
+                        break;
+                    case Direction::E:
+                        break;
+                    case Direction::SE:
+                        break;
+                    case Direction::S:
+                        break;
+                    case Direction::SW:
+                        break;
+                    case Direction::W:
+                        break;
+                }
             }
         }
         else
         {
-            switch (move.getDirection())
+            if (o == ORIENTATION_POS)
             {
-                case Direction::NW:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
-                    break;
-                case Direction::N:
-                    pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
-                    break;
-                case Direction::NE:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::E:
-                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::SE:
-                    pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::S:
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::SW:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
-                    break;
-                case Direction::W:
-                    pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
-                    break;
+                switch (move.getDirection())
+                {
+                    case Direction::NW:
+                        pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::N:
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::NE:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::E:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        break;
+                    case Direction::SE:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                        break;
+                    case Direction::S:
+                        pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                        break;
+                    case Direction::SW:
+                        pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                        pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                        break;
+                    case Direction::W:
+                        pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                        break;
+                }
             }
+            else
+            {
+                switch (move.getDirection())
+                {
+                    case Direction::NW:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                        break;
+                    case Direction::N:
+                        pt2.y = OverflowAdd(pt2.y, move.getMagnitude(), BOARD_DEPTH, UNBOUNDED);
+                        break;
+                    case Direction::NE:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::E:
+                        pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::SE:
+                        pt2.x = OverflowSub(pt2.x, move.getMagnitude(), UNBOUNDED);
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::S:
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::SW:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        pt2.y = OverflowSub(pt2.y, move.getMagnitude(), UNBOUNDED);
+                        break;
+                    case Direction::W:
+                        pt2.x = OverflowAdd(pt2.x, move.getMagnitude(), BOARD_WIDTH, UNBOUNDED);
+                        break;
+                }
+            }
+            if (not(isUnbounded(pt2)))
+                indices.push_back(pt2);
         }
-        return pt2;
+        return indices;
     }
 
-    SmallPoint2 genIndex2(const SmallPoint3& pt3, const Move& move, Orientation o)
+    Indices3 filterIndices3(const Board& board, const Indices3& indices, StateFilter filter)
     {
-        return genIndex2(SmallPoint2(pt3.x, pt3.z), move, o);
-    }
-
-    BoardState genBoardState(const Board& board, const Indices3& indices, StateFilter filter)
-    {
-        BoardState state { BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, false };
-        for (auto idx = indices.cbegin(); idx != indices.cend(); ++idx)
-            if (filter(*idx, *(board[*idx])))
-                    state[*idx] = true;
-        return std::move(state);
+        Indices3 state;
+        for (auto i = indices.cbegin(); i != indices.cend(); ++i)
+            if (filter(*i, *(board[*i])))
+                state.push_back(*i);
+        return state;
     }
 
     bool validPlacementDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
@@ -931,9 +1013,41 @@ namespace Gungi
         return true;
     }
 
-    bool validRunningDrop(const Board& board, const Piece& piece, const SmallPoint3& pt3,
+    bool validRunningDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
             Orientation o)
     {
-        return true;
+        if (o == ORIENTATION_NEG)
+            pt3 = asPositive3(pt3);
+
+        // Catapult and Fortress must be at first tier.
+        if (piece.onHead() && (piece.getHead() == Head::Catapult || 
+                    piece.getHead() == Head::Catapult) && availableTierAt(board, pt3) != 0) 
+            return false;
+
+        pt3.y = availableTierAt(board, pt3);
+        if (pt3.y == NO_TIERS_FREE)
+            return false;
+
+        const Piece& topPiece = *(board[pt3]); 
+        return topPiece.dropStackable();
+    }
+
+
+    bool validRunningShift(const Board& board, const SmallPoint3& origin, const Move& move, 
+            Orientation o)
+    {
+        auto resultantIndex = genIndex2(origin, move, o);
+        if (isUnbounded(resultantIndex))
+            return false;
+    }
+
+    bool validRunningShift(const Board& board, const Piece& piece, const SmallPoint3& pt3,
+            const Move& move, Orientation o = ORIENTATION_POS)
+    {
+        auto resultantIndex = genIndex2(pt3, move, o);
+        if (isUnbounded(resultantIndex))
+            return false;
+        
+        if (
     }
 }

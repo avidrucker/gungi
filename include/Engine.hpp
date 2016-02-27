@@ -17,20 +17,10 @@
 #pragma once
 
 #include <tuple>
+#include <memory>
 
 #include <Matrix.hpp>
 #include <Protocol.hpp>
-
-/**
- * Notes:
- * 1. Consider making color and orientation constant for player.
- * 2. Consider placing a piece on the parameter of validPlacementDrop instead
- *      of current player's index.
- * 3. Pieces with pieces out of bounds still get nullified, and placed. DONE
- * 4. Check for dropping same piece twice. DONE
- * 5. Consider moving the validators to Protocol since it's part of the ruleset
- * 6. Add ability to check if all of a player's pieces have been placed on board. DONE
- */
 
 namespace Gungi
 {
@@ -54,26 +44,26 @@ namespace Gungi
 
             /**
              * This method will drop, or place, a piece on the board from the player's hand.
-             * @param idx the index of the piece of interest
+             * @param i the index of the piece of interest
              * @param pt3 the point on the board to place the piece on
              * @return true if piece has been placed, false if couldn't.
              */
-            bool drop(const SizeType& idx, SmallPoint3 pt3);
+            bool drop(const SizeType& i, SmallPoint3 pt3);
 
             /**
              * This method will shift a piece on the board to index generated from the move.
-             * @param idx the index of the piece of interest
+             * @param i the index of the piece of interest
              * @param move the move being applied to the move
              * @return true if piece has been shifted, false if couldn't.
              */
-            bool shift(const SizeType& idx, const Move& move);
+            bool shift(const SizeType& i, const Move& move);
             
             /**
              * This method will transfer a piece on the board to another player. 
-             * @param idx the index of the piece of interest
+             * @param i the index of the piece of interest
              * @param player reference of the player to give the piece to
              */
-            void transfer(const SizeType& idx, Player& player);
+            void transfer(const SizeType& i, Player& player);
 
             /**
              * This method will append a piece to the player's piece set.
@@ -140,9 +130,9 @@ namespace Gungi
             SmallPoint3& _pointFor(const SizeType& i);
 
             PieceSet _pieces; /**< Player's piece set. */
-            Board* _gameBoard; /**< Pointer to the game board. */
-            Color _color; /**< The color of the player. */
-            Orientation _orientation; /**< The orientation of the player. */
+            std::shared_ptr<Board> _gameBoard; /**< Pointer to the game board. */
+            const Color _color; /**< The color of the player. */
+            const Orientation _orientation; /**< The orientation of the player. */
             SizeType _onBoard; /**< Amount of player's pieces on board. */
             SizeType _onHand; /**< Amount of player's pieces on hand. */
             SizeType _numPieces; /**< Amount of player's pieces total. */
@@ -184,7 +174,7 @@ namespace Gungi
              * This method will return const pointer to the current player.
              * @return a const pointer to the current player.
              */
-            const Player* currentPlayer() const;
+            const Player& currentPlayer() const;
 
             /**
              * This method will drop('place') piece at the given index at the pt3 indicated. 
@@ -200,7 +190,7 @@ namespace Gungi
              * @param move the move to apply to the piece
              * @return true if piece was successfully moved, false if not
              */
-            bool move(const SizeType& idx, const Move& move);
+            bool move(const SizeType& i, const Move& move);
 
             /**
              * This method will return the current phase of the game.
@@ -228,6 +218,6 @@ namespace Gungi
             Player _one; /**< Player one. */
             Player _two; /**< Player two. */
             Phase _phase; /** Phase of the game. */
-            Player* _currentPlayer; /**< Pointer to current player. */
+            std::shared_ptr<Player> _currentPlayer; /**< Pointer to current player. */
     };
 }

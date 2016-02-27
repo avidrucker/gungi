@@ -146,7 +146,8 @@ namespace Gungi
 
     Game::Game()
     : _onesTurn      (true)
-    , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, &NULL_PIECE)
+    , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, 
+            std::move(std::shared_ptr<const Piece>(&NULL_PIECE)))
     , _one           (&_gameBoard, Player::Color::Black, ORIENTATION_POS)
     , _two           (&_gameBoard, Player::Color::White, ORIENTATION_NEG)
     , _phase         (Phase::Standby)
@@ -162,7 +163,7 @@ namespace Gungi
     {
         if (_phase != Phase::Running)
         {
-            _currentPlayer = &_one;
+            _currentPlayer.reset(&_one);
             ++_phase;
         }
     }
@@ -172,9 +173,9 @@ namespace Gungi
         return _gameBoard;
     }
 
-    const Player* Game::currentPlayer() const
+    const Player& Game::currentPlayer() const
     {
-        return _currentPlayer; 
+        return *_currentPlayer; 
     }
 
     bool Game::drop(const SizeType& i, const SmallPoint3& pt)
@@ -188,12 +189,12 @@ namespace Gungi
         return result;
     }
 
-    bool Game::move(const SizeType& idx, const Move& move)
+    bool Game::move(const SizeType& i, const Move& move)
     {
         if (!_running())
             return false;
 
-        if (!_currentPlayer->shift(idx,move))
+        if (!_currentPlayer->shift(i,move))
             return false;
 
         _flipPlayer();
@@ -207,7 +208,7 @@ namespace Gungi
 
     void Game::_flipPlayer()
     {
-        _currentPlayer = _onesTurn ? &_two : &_one;
+        _onesTurn ? _currentPlayer.reset(&_two) : _currentPlayer.reset(&_one);
         _onesTurn = !_onesTurn;
     }
 
