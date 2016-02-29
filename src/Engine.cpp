@@ -48,7 +48,7 @@ namespace Gungi
 
     bool Player::shift(const SizeType& i, const Move& move)
     {
-        auto pt2 = genIndex2(pointFor(i), move, _orientation);
+        auto pt2 = genIndex2Of(pointFor(i), move, _orientation);
         if (isUnbounded(pt2))
             return false;
 

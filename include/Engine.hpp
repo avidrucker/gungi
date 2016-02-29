@@ -31,7 +31,7 @@ namespace Gungi
     class Player
     {
         public:
-            enum class Color : SizeType { Black, White }; //Could grow
+            enum class Color : SizeType { Black, White };
             
             /**
              * This constructor will instantiate a player that points to game board.

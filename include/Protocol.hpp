@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 #include <tuple>
+#include <algorithm>
 
 #include <Matrix.hpp>
 
@@ -79,16 +80,6 @@ namespace Gungi
     constexpr SizeType DROP_STACKABLE_PIECES = 4; /**< Number of pieces that can be dropped on. */
     constexpr Orientation ORIENTATION_POS    = true; /**< Indicates positive board orientation. */
     constexpr Orientation ORIENTATION_NEG    = false; /**< Indicates negative board orientation. */
-
-
-    /**
-     * Enum that stores possible board orientations. Positive indicates
-     * that the board is being accessed with x(0),z(0) being at the immediate left
-     * of the computer screen. Negative indicates that board is being accessed with 
-     * x,z being at the far right of the computer screen.
-     */
-    //enum class Orientation : SizeType
-    //{ Positive, Negative, None };
 
     /**
      * Enum that stores the directions of a move using the conventional NW (north west),
@@ -160,12 +151,6 @@ namespace Gungi
                     const MagnitudeType& nextMagnitude, const Direction& nextDirection);
 
             /**
-             * This destructor will free the memory used by the next move if the instantiation
-             * used a next move.
-             */
-            ~Move();
-
-            /**
              * This method returns the magnitude of the move.
              * @return the magnitude of the move
              */
@@ -178,15 +163,15 @@ namespace Gungi
             const Direction& getDirection() const;
 
             /**
-             * This method returns a pointer to the next move.
-             * @return a pointer to the next move.
+             * This method returns a reference to the next move.
+             * @return a reference to the next move.
              */
-            Move* getNext() const;
+            const Move& getNext() const;
 
         private:
             const MagnitudeType _magnitude; /**< The magnitude of the move. */ 
             const Direction _direction; /**< The direction of the move. */
-            Move* _next; /**< Pointer to the next move, if used. */
+            std::unique_ptr<Move> _next; /**< Pointer to the next move, if used. */
     };
     
     /**
@@ -267,6 +252,11 @@ namespace Gungi
      * This convenience operator overload decrements a tier enum.
      */
     Tier& operator --(Tier& tier);
+
+    Tier asTier(const SizeType& i)
+    {
+
+    }
     
     /**
      * This convenience operator overload increments a phase enum.
@@ -340,20 +330,6 @@ namespace Gungi
      * @param tier the Tier used to determine which set of mvoes to append
      */
     void genNinjaMoveSet        (MoveSet& moveset, const Tier& tier);
-
-    /**
-     * This function will append the moves that the catapult can use before being filtered out.
-     * @param moveset a reference to a MoveSet to append to: an in-out parameter
-     * @param tier the Tier used to determine which set of mvoes to append
-     */
-    void genCatapultMoveSet     (MoveSet& moveset, const Tier& tier);
-
-    /**
-     * This function will append the moves that the fortress can use before being filtered out.
-     * @param moveset a reference to a MoveSet to append to: an in-out parameter
-     * @param tier the Tier used to determine which set of mvoes to append
-     */
-    void genFortressMoveSet     (MoveSet& moveset, const Tier& tier);
 
     /**
      * This function will append the moves that the hidden dragon can use before being 
@@ -469,6 +445,12 @@ namespace Gungi
      * @return unfiltered moveset of the piece given its' tier
      */
     MoveSet genTailMoveSet(const Piece& piece, const Tier& tier);
+
+    Indices2 genFortressRangeSet(const Board& board, const SmallPoint2& origin, 
+            Orientation o = ORIENTATION_POS);
+    
+    Indices2 genCatapultRangeSet(const Board& board, const SmallPoint2& origin, 
+            Orientation o = ORIENTATION_POS);
 
     /**
      * This convenience function subtracts two unsigned operands. If lhs operand < rhs operand,
@@ -672,6 +654,7 @@ namespace Gungi
      * @param pt3 point to place piece in
      */
     void placeAt(Board& board, const Piece& piece, SmallPoint3 pt3);
+    
 
     /**
      * This function will convert a pt2 and a move unto a collection of indices
@@ -681,11 +664,9 @@ namespace Gungi
      * @param o the current orientation of pt2
      * @return the collection of indices generated (empty if move can't be applied) 
      */
-    Indices2 genIndices2(SmallPoint2 pt2, const Move& move, 
+    SmallPoint2 genIndex2Of(SmallPoint2 pt2, const Move& move, 
             Orientation o = ORIENTATION_POS);
 
-    bool 
-   
     /**
      * This function will generate a board state on the given set of indices using the filter
      * function.
@@ -695,6 +676,9 @@ namespace Gungi
      * @return the BoardState after applying the filter function
      */
     Indices3 filterIndices3(const Board& board, const Indices3& indices, StateFilter filter);
+
+    Indices3 genInfluenceSources(const Board& board, const SmallPoint3& destination,
+            Orientation o = ORIENTATION_POS);
 
     /**
      * This function will evaluate if the given piece can be dropped('placed') at the given
