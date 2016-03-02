@@ -18,6 +18,11 @@
 
 #include <algorithm>
 
+/*
+ * 1. Check to see a constexpr constructor can be created for Point2/3 so that UBD_PT2/3 can
+ * be declared as constexpr.
+ */
+
 namespace Gungi
 {
     template <class SizeType>

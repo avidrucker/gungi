@@ -17,7 +17,7 @@
 #pragma once
 
 #include <tuple>
-#include <memory>
+#include <algorithm>
 
 #include <Matrix.hpp>
 #include <Protocol.hpp>
@@ -31,7 +31,6 @@ namespace Gungi
     class Player
     {
         public:
-            enum class Color : SizeType { Black, White };
             
             /**
              * This constructor will instantiate a player that points to game board.
@@ -40,7 +39,8 @@ namespace Gungi
              * @param color the color to set the player to
              * @param o the orientation in which the player will perceive the board
              */
-            Player(Board* gameBoard, const Color& color, Orientation o);
+            Player(Board* gameBoard, const Color& color, const Color& oppColor, 
+                    Orientation o);
 
             /**
              * This method will drop, or place, a piece on the board from the player's hand.
@@ -78,20 +78,24 @@ namespace Gungi
              */
             const IndexedPiece& operator [] (const SizeType& i) const;
 
-            const Piece& pieceFor(const SizeType &i) const;
+            const Piece& pieceAt(const SizeType &i) const;
 
             /**
              * This method accesses the player's piece set for it's SmallPoint3 index.
              * @param i index of piece
              * @return the point of the piece
              */
-            const SmallPoint3& pointFor(const SizeType& i) const;
+            const SmallPoint3& pointAt(const SizeType& i) const;
+
+            const Color& colorAt(const SizeType& i) const;
 
             /**
              * This method returns the color of the player.
              * @return the color of the player
              */
             const Color& getColor() const;
+
+            const Color& getOppColor() const;
 
             /**
              * This method returns the piece set of the player.
@@ -124,14 +128,12 @@ namespace Gungi
             const SizeType& numPieces() const;
 
         private:
-            void _setIndex(const SizeType& i, const SmallPoint3& pt3);
             void _nullifyIndex(const SizeType& i);
-            Piece& _pieceFor(const SizeType& i);
-            SmallPoint3& _pointFor(const SizeType& i);
 
             PieceSet _pieces; /**< Player's piece set. */
-            std::shared_ptr<Board> _gameBoard; /**< Pointer to the game board. */
+            Board* _gameBoard; /**< Pointer to the game board. */
             const Color _color; /**< The color of the player. */
+            const Color _oppColor; 
             const Orientation _orientation; /**< The orientation of the player. */
             SizeType _onBoard; /**< Amount of player's pieces on board. */
             SizeType _onHand; /**< Amount of player's pieces on hand. */
@@ -168,7 +170,11 @@ namespace Gungi
              * This method will return the game board of the game.
              * @return a const reference to the game board
              */
-            const Board& gameBoard() const;
+            const Board* gameBoard() const;
+
+            const Player* playerOne() const;
+
+            const Player* playerTwo() const;
 
             /**
              * This method will return const pointer to the current player.
@@ -218,6 +224,6 @@ namespace Gungi
             Player _one; /**< Player one. */
             Player _two; /**< Player two. */
             Phase _phase; /** Phase of the game. */
-            std::shared_ptr<Player> _currentPlayer; /**< Pointer to current player. */
+            Player* _currentPlayer; /**< Pointer to current player. */
     };
 }

@@ -3,7 +3,8 @@ Changelog
 
 02/27/2016
 ----------
-1.  Implemented Shared Pointer for _gameBoard on Player class and for _currentPlayer on Game class.
+1.  ~Implemented Shared Pointer for _gameBoard on Player class and for _currentPlayer on Game
+    class.~
 2.  Made _color and _orientation const for Player class.
 3.  Made RULESET.md file (contains rules from Stickpage Forum)
 4.  Added PieceFilter and TierFilter alias in Protocol.hpp ~Line 40
@@ -23,3 +24,15 @@ Changelog
 15. Moved genIndices2 to genIndex2Of function in Protocol.hpp ~Line 665 & Protocol.cpp ~Line 880
 16. Implemented validRunningShift function in Protocol.hpp ~Line 720 & Protocol.cpp ~Line 1005
 17. Implemented genInfluenceSource() function in Protocol.hpp ~Line 680 & Protocol.cpp ~Line 970
+
+03/02/2016
+----------
+18. Removed smart pointers from code base due to lack of full understanding of its' goal.
+    Smart pointers are useful for dynamically allocated memory management. The pointers
+    of code base are pointing to objects that are RAII-complaint and that will come off
+    the stack once away from scope.
+19. Implemented playerOne() and playerTwo() method for Game in Engine.hpp ~Line 170 & Engine.cpp 
+    ~Line 180.
+20. Moved gameBoard() --> const Board& to gameBoard() --> const Board* in Engine.hpp ~Line 170 
+21. Added == operator to Move class in Protocol.hpp ~Line 135 & in Protocol.cpp ~Line 25
+22. Implemented PieceSet class in Protocol.hpp ~Line 260 & in Protocol.cpp ~Line 120

@@ -16,88 +16,141 @@
 
 #include <Engine.hpp>
 
+/*
+ * Notes:
+ * 1. Player transfer shouldn't exist. Game should handle that. Implemente remove, and append.
+ * 2. Figure out how to take..
+ */
+
 namespace Gungi
 {
-    Player::Player(Board* gameBoard, const Color& color, Orientation o)
-    : _gameBoard    (gameBoard)
+    Player::Player(Board* gameBoard, const Color& color, const Color& oppColor, Orientation o)
+    : _pieces       (color, oppColor)
+    , _gameBoard    (gameBoard)
     , _color        (color)
+    , _oppColor     (oppColor)
     , _orientation  (o)
     , _onBoard      (0)
     , _onHand       (STD_PIECE_CT)
     , _numPieces    (STD_PIECE_CT)
-    {
-       initPieceSet(_pieces);
-    }
+    {}
 
     bool Player::drop(const SizeType& i, SmallPoint3 pt3)
     {
-        if (not(isUnbounded(pointFor(i))))
+        if (not(isUnbounded(pointAt(i))))
             return false;
 
-        if (not(validPlacementDrop(*_gameBoard, pieceFor(i), pt3, _orientation)))
+        if (not(validPlacementDrop(*_gameBoard, pieceAt(i), pt3, _orientation)))
             return false;
          
         if (_orientation == ORIENTATION_NEG)
             pt3 = asPositive3(pt3);
-        
-        pt3.y = availableTierAt(*_gameBoard, pt3, _orientation);
-        std::get<SmallPoint3>(_pieces[i]) = pt3;
-        placeAt(*_gameBoard, pieceFor(i), pt3);
+
+        pt3.y = availableTierAt(*_gameBoard, pt3);
+
+        _pieces.pointAt(i) = pt3;
+        placeAt(*_gameBoard, pieceAt(i), pt3);
         return true;
     }
 
     bool Player::shift(const SizeType& i, const Move& move)
     {
-        auto pt2 = genIndex2Of(pointFor(i), move, _orientation);
+        #if (DEBUG)
+            cout << "Player.shift() --> _orientation: " << _orientation << endl;
+            cout << "Player.shift() --> Point at i: " << pointAt(i) << endl;
+        #endif
+        
+        auto pt2 = genIndex2Of(pointAt(i), move, _orientation);
+
+        if (_orientation == ORIENTATION_NEG)
+            pt2 = asPositive2(pt2);
+
+        auto pieceMoveSet = pieceAt(i).onHead() ? genHeadMoveSet(pieceAt(i), 
+                asTier(pointAt(i).y)) : genTailMoveSet(pieceAt(i), asTier(pointAt(i).y));
+
+        auto itr = std::find_if(pieceMoveSet.begin(), pieceMoveSet.end(), [&move] (const Move& rhs)
+                { return move == rhs; });
+
+        if (itr == pieceMoveSet.end())
+        {
+            #if (DEBUG)
+                cout << "Player.shift() --> Move not in piece's moveset." << endl;
+            #endif
+            return false;
+
+        }
+
+        #if (DEBUG)
+            cout << "Player.shift() --> Move in piece's moveset." << endl;
+            cout << "Player.shift() --> pt2: " << pt2 << endl;
+        #endif
+
         if (isUnbounded(pt2))
             return false;
 
-        if (not(isUnbounded(pointFor(i))))
-            nullifyAt(*_gameBoard, pointFor(i), _orientation); 
-
         auto pt3 = SmallPoint3(pt2);
-        pt3.y = availableTierAt(*_gameBoard, pt3, _orientation);
+        pt3.y = availableTierAt(*_gameBoard, pt3);
 
         if (pt3.y == NO_TIERS_FREE)
-            return false;
-        
-        _setIndex(i, pt3);
-        placeAt(*_gameBoard, pieceFor(i), pointFor(i));
+        {
+            auto pieceColor = (*((*_gameBoard)[pt3])).getActiveColor();
+            if (pieceColor == _color)
+                return false;
+                         
+        }
+
+        if (not(isUnbounded(pointAt(i))))
+            nullifyAt(*_gameBoard, pointAt(i));
+       
+        #if (DEBUG)
+            cout << "Player.shift() --> pt3: " << pt3 << endl;
+        #endif
+
+        _pieces.pointAt(i) = pt3;
+        placeAt(*_gameBoard, pieceAt(i), pointAt(i));
         return true;
     }
 
     void Player::transfer(const SizeType& i, Player& player)
     {
-        nullifyAt(*_gameBoard, pointFor(i), _orientation);
+        nullifyAt(*_gameBoard, pointAt(i), _orientation);
         _nullifyIndex(i);
-        player.append(_pieces[i]);
-        _pieces.erase(_pieces.cbegin() + i);
+        player.append(_pieces.remove(i));
     }
 
     void Player::append(IndexedPiece pc)
     {
-        std::get<Piece> (pc).flip();
-        _pieces.push_back(pc);
+        _pieces.append(pc);
     }
 
     const IndexedPiece& Player::operator [] (const SizeType& i) const
     {
-        return _pieces[i];
+        return _pieces.Set[i];
     }
 
-    const Piece& Player::pieceFor(const SizeType &i) const
+    const Piece& Player::pieceAt(const SizeType &i) const
     {
-        return std::get<Piece>(_pieces[i]);
+        return _pieces.pieceAt(i);
     }
 
-    const SmallPoint3& Player::pointFor(const SizeType& i) const
+    const SmallPoint3& Player::pointAt(const SizeType& i) const
     {
-        return std::get<SmallPoint3>(_pieces[i]);
+        return _pieces.pointAt(i);
     }
 
-    const Player::Color& Player::getColor() const
+    const Color& Player::colorAt(const SizeType& i) const
+    {
+        return _pieces.pieceAt(i).getActiveColor();
+    }
+
+    const Color& Player::getColor() const
     {
         return _color;
+    }
+
+    const Color& Player::getOppColor() const
+    {
+        return _oppColor;
     }
 
     const PieceSet& Player::getFullSet() const
@@ -124,32 +177,16 @@ namespace Gungi
         return _numPieces;
     }
 
-    void Player::_setIndex(const SizeType& i, const SmallPoint3& pt3)
-    {
-        std::get<SmallPoint3> (_pieces[i]) = pt3;
-    }
-
     void Player::_nullifyIndex(const SizeType& i)
     {
-        std::get<SmallPoint3> (_pieces[i]) = UBD_PT3;
-    }
-
-    Piece& Player::_pieceFor(const SizeType& i)
-    {
-        return std::get<Piece> (_pieces[i]);
-    }
-
-    SmallPoint3& Player::_pointFor(const SizeType& i)
-    {
-        return std::get<SmallPoint3> (_pieces[i]);
+        _pieces.pointAt(i) = UBD_PT3;
     }
 
     Game::Game()
     : _onesTurn      (true)
-    , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, 
-            std::move(std::shared_ptr<const Piece>(&NULL_PIECE)))
-    , _one           (&_gameBoard, Player::Color::Black, ORIENTATION_POS)
-    , _two           (&_gameBoard, Player::Color::White, ORIENTATION_NEG)
+    , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, &NULL_PIECE)
+    , _one           (&_gameBoard, Color::Black, Color::White, ORIENTATION_POS)
+    , _two           (&_gameBoard, Color::White, Color::Black, ORIENTATION_NEG)
     , _phase         (Phase::Standby)
     , _currentPlayer (nullptr)
     {}
@@ -163,14 +200,24 @@ namespace Gungi
     {
         if (_phase != Phase::Running)
         {
-            _currentPlayer.reset(&_one);
+            _currentPlayer = &_one;
             ++_phase;
         }
     }
 
-    const Board& Game::gameBoard() const
+    const Board* Game::gameBoard() const
     {
-        return _gameBoard;
+        return &_gameBoard;
+    }
+
+    const Player* Game::playerOne() const
+    {
+        return &_one;
+    }
+
+    const Player* Game::playerTwo() const
+    {
+        return &_two;
     }
 
     const Player& Game::currentPlayer() const
@@ -208,7 +255,7 @@ namespace Gungi
 
     void Game::_flipPlayer()
     {
-        _onesTurn ? _currentPlayer.reset(&_two) : _currentPlayer.reset(&_one);
+        _currentPlayer = _onesTurn ? &_two : &_one;
         _onesTurn = !_onesTurn;
     }
 

@@ -17,35 +17,51 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
 #include <vector>
 #include <tuple>
 #include <algorithm>
+#include <string>
 
 #include <Matrix.hpp>
 
 /**
  * Implement the genIndices2 function
+ * Take out the Orientation typedef, shit is confusing
+ * See if the forward declarations can be moved.
+ * All the orientation switching is trouble-some, fix it
+ * Pieces have colors, ass hole.
  */
+
+#define DEBUG 1
+
+#if (DEBUG)
+    #include <iostream>
+    using std::cout;
+    using std::endl;
+#endif
 
 namespace Gungi
 {
     class Move;
     class Piece;
-    
+
     using SizeType     = uint8_t;
     using SmallPoint2  = Point2<SizeType>;
     using SmallPoint3  = Point3<SizeType>;
     using MoveSet      = std::vector<Move>;
+    using Board        = Matrix3<const Piece*, SizeType>;
     using IndexedPiece = std::tuple<Piece, SmallPoint3>;
-    using PieceSet     = std::vector<IndexedPiece>;
-    using Board        = Matrix3<std::shared_ptr<const Piece>, SizeType>;
     using Orientation  = bool;
     using Indices2     = std::vector<SmallPoint2>;
     using Indices3     = std::vector<SmallPoint3>;
     using PieceFilter  = bool(*)(const Piece&);
     using TierFilter   = bool(*)(const SizeType& i, const Piece&);
     using StateFilter  = bool(*)(const SmallPoint3& pt3, const Piece&);
+
+    #if (DEBUG)
+        std::ostream& operator << (std::ostream& out, const SmallPoint2& pt2);
+        std::ostream& operator << (std::ostream& out, const SmallPoint3& pt3);
+    #endif
 
     constexpr SizeType BOARD_WIDTH           = 9; /**< Standard Gungi board width (Cols). */
     constexpr SizeType BOARD_DEPTH           = 9; /** Standard Gungi board depth (Rows). */
@@ -114,7 +130,11 @@ namespace Gungi
      */
     enum class Phase : SizeType
     { Standby, Placement, Running };
+
         
+    enum class Color : unsigned char
+    { None, Black, White };
+
     const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint2. */
     const SmallPoint3 UBD_PT3 { UNBOUNDED, UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint3. */
 
@@ -166,7 +186,9 @@ namespace Gungi
              * This method returns a reference to the next move.
              * @return a reference to the next move.
              */
-            const Move& getNext() const;
+            const Move* getNext() const;
+
+            friend bool operator == (const Move& lhs, const Move& rhs);
 
         private:
             const MagnitudeType _magnitude; /**< The magnitude of the move. */ 
@@ -197,7 +219,8 @@ namespace Gungi
              * @param head the desired head value
              * @param tail the desired tail value
              */
-            Piece(const Head& head, const Tail& tail = Tail::None);
+            Piece(const Head& head, const Tail& tail, const Color& headColor, 
+                    const Color& tailColor);
 
             /**
              * This method will flip the side of the piece.
@@ -210,11 +233,17 @@ namespace Gungi
              */
             const Head& getHead() const;
 
+            const Color& getHeadColor() const;
             /**
              * This method returns the tail value.
              * @return a const reference to the tail value.
              */
             const Tail& getTail() const;
+
+
+            const Color& getTailColor() const;
+
+            const Color& getActiveColor() const;
 
             /**
              * This method returns the null flag value of the piece.
@@ -239,9 +268,28 @@ namespace Gungi
             Tail _tail; /**< The tail value of the piece. */
             bool _nullPiece; /**< Null piece flag. */
             bool _onHead; /**< On head flag. */
+            Color _headColor;
+            Color _tailColor;
     };
     
-    const Piece NULL_PIECE { Head::None, Tail::None }; /**< A null piece. */
+    class PieceSet 
+    {
+        public:
+
+            PieceSet(Color headColors, Color tailColors);
+
+            Piece& pieceAt(const SizeType& i);
+            SmallPoint3& pointAt(const SizeType& i);
+            IndexedPiece remove(const SizeType& i);
+            void append(const IndexedPiece& piece);
+            void append(IndexedPiece&& piece);
+            const Piece& pieceAt(const SizeType& i) const;
+            const SmallPoint3& pointAt(const SizeType& i) const;
+
+            std::vector<IndexedPiece> Set;
+    };
+
+    const Piece NULL_PIECE; /**< A null piece. */
 
     /**
      * This convenience operator overload increments a tier enum.
@@ -253,10 +301,7 @@ namespace Gungi
      */
     Tier& operator --(Tier& tier);
 
-    Tier asTier(const SizeType& i)
-    {
-
-    }
+    Tier asTier(const SizeType& i);
     
     /**
      * This convenience operator overload increments a phase enum.
@@ -282,13 +327,9 @@ namespace Gungi
      */
     bool isUnbounded(const SmallPoint3& pt3);
 
-    /**
-     * This function will initialize a PieceSet to the standard pieces distributed to a
-     * player. This function is required since PieceSet isn't a class but a specialization of 
-     * std::vector.
-     * @param pieceSet PieceSet to initiliaze
-     */
-    void initPieceSet(PieceSet& pieceSet);
+    std::string getHeadString(const Piece& piece);
+
+    std::string getTailString(const Piece& piece);
 
     /**
      * This function returns the head rank value of the given piece.
@@ -569,7 +610,7 @@ namespace Gungi
      * @param pt3 a SmallPoint3
      * @param o the orientation to interpret the board from
      */
-    void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o);
+    void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o = ORIENTATION_POS);
     /**
      * This function will return the lowest available tier at the given pt2. Note,
      * the pt2.x will correspond to board's x-coordinate, and pt2.y will correspond
@@ -677,7 +718,7 @@ namespace Gungi
      */
     Indices3 filterIndices3(const Board& board, const Indices3& indices, StateFilter filter);
 
-    Indices3 genInfluenceSources(const Board& board, const SmallPoint3& destination,
+    Indices3 genInfluenceSources(const Board& board, SmallPoint3 destination,
             Orientation o = ORIENTATION_POS);
 
     /**
