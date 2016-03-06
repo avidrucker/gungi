@@ -22,6 +22,12 @@
 #include <Matrix.hpp>
 #include <Protocol.hpp>
 
+/**
+ * The control of evaluating good/bad moves should under the control of the game engine. The
+ * player should only be allowed to directly place a piece upon after the game engine has 
+ * assured that it is a valid move.
+ */
+
 namespace Gungi
 {
     /**
@@ -32,44 +38,16 @@ namespace Gungi
     {
         public:
             
-            /**
-             * This constructor will instantiate a player that points to game board.
-             * It will generate the standard piece set as dictated by the game's protocol.
-             * @param gameBoard a pointer to the main gameboard
-             * @param color the color to set the player to
-             * @param o the orientation in which the player will perceive the board
-             */
             Player(Board* gameBoard, const Color& color, const Color& oppColor, 
                     Orientation o);
 
-            /**
-             * This method will drop, or place, a piece on the board from the player's hand.
-             * @param i the index of the piece of interest
-             * @param pt3 the point on the board to place the piece on
-             * @return true if piece has been placed, false if couldn't.
-             */
-            bool drop(const SizeType& i, SmallPoint3 pt3);
+            void drop(const SizeType& i, const SmallPoint3& pt3);
 
-            /**
-             * This method will shift a piece on the board to index generated from the move.
-             * @param i the index of the piece of interest
-             * @param move the move being applied to the move
-             * @return true if piece has been shifted, false if couldn't.
-             */
-            bool shift(const SizeType& i, const Move& move);
+            void updatePoint(const SizeType& i, const SmallPoint3& pt3);
             
-            /**
-             * This method will transfer a piece on the board to another player. 
-             * @param i the index of the piece of interest
-             * @param player reference of the player to give the piece to
-             */
-            void transfer(const SizeType& i, Player& player);
+            void remove(const SizeType& i);
 
-            /**
-             * This method will append a piece to the player's piece set.
-             * @param pc the piece to append
-             */
-            void append(IndexedPiece pc);
+            void append(const Piece& pc);
 
             /**
              * This method accesses the player's piece set on a read-only basis.
@@ -170,6 +148,14 @@ namespace Gungi
              * This method will return the game board of the game.
              * @return a const reference to the game board
              */
+
+            IndexState drop(const SizeType& i, SmallPoint3 pt3);
+
+            IndexState move(const SizeType& i, const Move& move);
+    
+            IndexState assessDrop(bool playerOne, const SizeType& i, SmallPoint3 pt3) const;
+            IndexState assessMove(bool playerOne, const SizeType& i, const Move& move) const;
+
             const Board* gameBoard() const;
 
             const Player* playerOne() const;
@@ -181,23 +167,6 @@ namespace Gungi
              * @return a const pointer to the current player.
              */
             const Player& currentPlayer() const;
-
-            /**
-             * This method will drop('place') piece at the given index at the pt3 indicated. 
-             * @param i the index of the current player's piece in his/her piece set
-             * @param pt3 the desired pt3 to place the piece in
-             * @return true if piece was successfully placed, false if not
-             */
-            bool drop(const SizeType& i, const SmallPoint3& pt3);
-
-            /**
-             * This method will apply a move to the piece at the given index.
-             * @param i the index of the current player's piece in his/her piece set
-             * @param move the move to apply to the piece
-             * @return true if piece was successfully moved, false if not
-             */
-            bool move(const SizeType& i, const Move& move);
-
             /**
              * This method will return the current phase of the game.
              * @return a const reference to the current phase of the game.

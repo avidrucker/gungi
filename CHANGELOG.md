@@ -36,3 +36,10 @@ Changelog
 20. Moved gameBoard() --> const Board& to gameBoard() --> const Board* in Engine.hpp ~Line 170 
 21. Added == operator to Move class in Protocol.hpp ~Line 135 & in Protocol.cpp ~Line 25
 22. Implemented PieceSet class in Protocol.hpp ~Line 260 & in Protocol.cpp ~Line 120
+23. Added Color to Piece Class
+
+03/05/2016
+----------
+24. Implemented updatePoint method in Engine.hpp/cpp
+25. Implemented assessMove/assessDrop() methods in Engine.hpp/cpp
+26. Modified move/drop() methods in Engine.hpp/cpp

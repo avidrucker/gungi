@@ -68,6 +68,9 @@ namespace Gungi
 
     bool operator == (const Move& lhs, const Move& rhs)
     {
+        if (lhs.getMagnitude() == UNBOUNDED || rhs.getMagnitude() == UNBOUNDED)
+            return lhs.getDirection() == rhs.getDirection() && lhs.getNext() == rhs.getNext();
+
         return ((lhs.getMagnitude() == rhs.getMagnitude())
             && (lhs.getDirection() == rhs.getDirection())
             && (lhs.getNext() == rhs.getNext()));
@@ -141,6 +144,12 @@ namespace Gungi
             _head == Head::Ninja || _tail == Tail::Jounin || _nullPiece;
     }
 
+    bool Piece::canJump() const
+    {
+        return (_onHead && (_head == Head::Ninja || _head == Head::Archer)) ||
+            (!_onHead && _tail == Tail::Jounin);
+    }
+
     // This constructor is not good for the eyes o.O
     PieceSet::PieceSet(Color headColors, Color tailColors)
     {
@@ -192,21 +201,10 @@ namespace Gungi
                    Piece(Head::Soldier, Tail::Bronze, headColors, tailColors), UBD_PT3));
     }
 
-    Piece& PieceSet::pieceAt(const SizeType& i)
+    void PieceSet::remove(const SizeType& i)
     {
-        return std::get<Piece>(Set[i]);
-    }
-
-    SmallPoint3& PieceSet::pointAt(const SizeType& i)
-    {
-        return std::get<SmallPoint3>(Set[i]);
-    }
-
-    IndexedPiece PieceSet::remove(const SizeType& i)
-    {
-        auto piece = Set[i];
-        Set.erase(Set.begin() + i);
-        return piece;
+        if (i < Set.size())
+            Set.erase(Set.begin() + i);
     }
 
     void PieceSet::append(const IndexedPiece& piece)
@@ -217,6 +215,21 @@ namespace Gungi
     void PieceSet::append(IndexedPiece&& piece)
     {
         Set.push_back(std::move(piece));
+    }
+
+    void PieceSet::append(const Piece& piece, const SmallPoint3& pt3)
+    {
+        Set.emplace_back(piece, pt3);
+    }
+
+    Piece& PieceSet::pieceAt(const SizeType& i)
+    {
+        return std::get<Piece>(Set[i]);
+    }
+
+    SmallPoint3& PieceSet::pointAt(const SizeType& i)
+    {
+        return std::get<SmallPoint3>(Set[i]);
     }
 
     const Piece& PieceSet::pieceAt(const SizeType& i) const
@@ -253,6 +266,8 @@ namespace Gungi
             case Tier::Three:
                 tier = Tier::One;
                 return tier;
+            default:
+                return tier;
         }
     }
 
@@ -269,6 +284,8 @@ namespace Gungi
             case Tier::Three:
                 tier = Tier::Two;
                 return tier;
+            default:
+                return tier;
         }
     }
 
@@ -278,7 +295,10 @@ namespace Gungi
             return Tier::One;
         else if (i == 1)
             return Tier::Two;
-        return Tier::Three;
+        else if (i == 2)
+            return Tier::Three;
+        else
+            return Tier::None;
     }
 
     Phase& operator ++ (Phase& phase)
@@ -922,8 +942,8 @@ namespace Gungi
     SmallPoint2 asPositive2(const SmallPoint2& pt2)
     {
         #if (DEBUG)
-            cout << "In SmallPoint2 asPositive2(SmallPoint2)" << endl;
-            cout << "Point is: " << pt2 << endl;
+            cerr << "In SmallPoint2 asPositive2(SmallPoint2)" << endl;
+            cerr << "Point is: " << pt2 << endl;
         #endif
 
         if (isUnbounded(pt2))
@@ -988,67 +1008,53 @@ namespace Gungi
                 (pt3.z + 1 - BOARD_DEPTH), pt3.y);
     }
 
-    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2)
+    bool isNullAt(const Board& board, const SmallPoint3& pt3)
     {
-        for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
-            if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i)))
-                return i;
-        return NO_TIERS_FREE;
+        return board[pt3]->isNull();
     }
 
-    bool isNullAt(const Board& board, const SmallPoint3& pt3, Orientation o)
-    {
-		if (o == ORIENTATION_POS)
-			return board[pt3]->isNull();
-		return board[asPositive3(pt3)]->isNull();
-    }
-
-    void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o)
+    void nullifyAt(Board& board, const SmallPoint3& pt3)
     {
         #if (DEBUG)
-            cout << "nullifyAt() called for pt3: " << pt3 << endl;
+            cerr << "In nullifyAt() called for pt3: " << pt3 << endl;
         #endif
 
         if (isUnbounded(pt3))
             return;
 
-        if (o == ORIENTATION_POS)
-            board[pt3] = &NULL_PIECE;
-        else
-            board[asPositive3(pt3)] = &NULL_PIECE;
+        board[pt3] = &NULL_PIECE;
     }
     
-    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2, Orientation o)
+    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2)
     {
 		for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
 		{
-			if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i), o))
+			if (isNullAt(board, SmallPoint3(pt2.x, pt2.y, i)))
 				return i;
 		}
 			return NO_TIERS_FREE;
     }
 
-    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3, Orientation o)
+    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3)
     {
-        return availableTierAt(board, SmallPoint2(pt3.x, pt3.z), o);
+        return availableTierAt(board, SmallPoint2(pt3.x, pt3.z));
     }
 
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2, Orientation o)
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt2)
     {
-        if (availableTierAt(board, pt2, o) == NO_TIERS_FREE)
+        if (availableTierAt(board, pt2) == NO_TIERS_FREE)
             return false;
         return true;
     }
 
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, Orientation o)
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3)
     {
-        if (availableTierAt(board, pt3, o) == NO_TIERS_FREE)
+        if (availableTierAt(board, pt3) == NO_TIERS_FREE)
             return false;
         return true;
     }
 
-    bool towerMeets(const Board& board, const SmallPoint2& pt2, TierFilter filter,
-            Orientation o)
+    bool towerMeets(const Board& board, const SmallPoint2& pt2, TierFilter filter)
     {
         for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
         {
@@ -1059,8 +1065,7 @@ namespace Gungi
         return true;
     }
 
-    bool towerMeets(const Board& board, SmallPoint3 pt3, TierFilter filter,
-            Orientation o)
+    bool towerMeets(const Board& board, SmallPoint3 pt3, TierFilter filter)
     {
         for (SizeType i = 0; i < BOARD_HEIGHT; ++i)
         {
@@ -1071,16 +1076,19 @@ namespace Gungi
         return true;
     }
 
-    void placeAt(Board& board, const Piece& piece, SmallPoint3 pt3)
+    void placeAt(Board& board, const Piece* piece, const SmallPoint3& pt3)
     {
-        pt3.y = availableTierAt(board, pt3);
-        board[pt3] = &piece;
+        board[pt3] = piece;
     }
 
-    SmallPoint2 genIndex2Of(SmallPoint2 pt2, const Move& move, Orientation o)
+    SmallPoint2 genIndex2Of(SmallPoint2 pt2, const Move& move)
     {
-        if (o == ORIENTATION_NEG)
-            return genIndex2Of(asPositive2(pt2), move, ORIENTATION_POS);
+        #if (DEBUG)
+            cerr << "In genIndex2Of() for pt2: " << pt2 << endl;
+        #endif
+
+    //    if (o == ORIENTATION_NEG)
+     //       return genIndex2Of(asPositive2(pt2), move, ORIENTATION_POS);
 
         switch (move.getDirection())
         {
@@ -1152,7 +1160,10 @@ namespace Gungi
                         
                         for (Move& move : moveset)
                         {
-                            auto pt2 = genIndex2Of(SmallPoint2(i, j), move, o); // Doesn't check N-Based moves
+                            auto pt2 = genIndex2Of(SmallPoint2(i, j), move); // Doesn't check N-Based moves
+                            if (o == ORIENTATION_NEG)
+                                pt2 = asPositive2(pt2);
+
                             if (pt2 == SmallPoint2(destination))
                                 sources.emplace_back(i, j, k); 
                         }
@@ -1166,6 +1177,10 @@ namespace Gungi
     bool validPlacementDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
             Orientation o)
     {
+        #if (DEBUG)
+            cerr << "In validPlacementDrop()" << endl;
+        #endif
+
         // Better short-circuit Mr. Compiler
         if ((o == ORIENTATION_POS) && pt3.z >= VALID_PLCMT_DEPTH)
             return false;
@@ -1177,11 +1192,23 @@ namespace Gungi
                 return false;
         }
 
+        #if (DEBUG)
+            cerr << "In validPlacementDrop(), depth is valid." << endl;
+        #endif
+
         if (availableTierAt(board, pt3) == NO_TIERS_FREE)
             return false;
 
+        #if (DEBUG)
+            cerr << "In validPlacementDrop(), there is at least one open tier." << endl;
+        #endif
+
         if (piece.onHead() && piece.getHead() == Head::Soldier)
         {
+            #if (DEBUG)
+                cerr << "In validPlacementDrop(), piece is a soldier." << endl;
+            #endif
+
             if (o == ORIENTATION_POS)
             {
                 for (SizeType i = 0u; i < VALID_PLCMT_DEPTH; ++i)
@@ -1211,11 +1238,19 @@ namespace Gungi
                     }
                 }
             }
+
+            #if (DEBUG)
+                cerr << "In validPlacementDrop(), piece (soldier) can be dropped." << endl;
+            #endif
         }
 
         if (piece.onHead() && (piece.getHead() == Head::Catapult || piece.getHead() == Head::Catapult)
                 && availableTierAt(board, pt3) != 0)
             return false;
+
+        #if (DEBUG)
+            cerr << "In validPlacementDrop(), piece (any) can be dropped." << endl;
+        #endif
 
         return true;
     }
@@ -1243,7 +1278,7 @@ namespace Gungi
     bool validRunningShift(const Board& board, const SmallPoint3& origin, const Move& move, 
             Orientation o)
     {
-        auto index = genIndex2Of(origin, move, o);
+        auto index = genIndex2Of(origin, move);
         if (isUnbounded(index))
             return false;
 
@@ -1258,12 +1293,25 @@ namespace Gungi
 
         if (piece.onHead() && piece.getHead() == Head::Commander)
         {
-            auto pt2 = genIndex2Of(SmallPoint2(pt3.x, pt3.z), move, o);
+            auto pt2 = genIndex2Of(SmallPoint2(pt3.x, pt3.z), move);
             auto destIndex = SmallPoint3(pt2.x, pt2.y, pt3.y);
             auto influencePoints = genInfluenceSources(board, destIndex);
             movablePiece = influencePoints.empty();
         }
 
         return validRunningShift(board, pt3, move, o) && movablePiece;
+    }
+
+    bool flatPathHas(const Board& board, SmallPoint2 pt2, const Move& move, 
+            PieceFilter filter)
+    {
+        bool inBound = not(isUnbounded(pt2));
+        for (SizeType i = 0; inBound && i <= move.getMagnitude(); ++i)
+        {
+            pt2 = genIndex2Of(pt2, Move(i, move.getDirection()));
+            if (filter(*(board(pt2.x, pt2.y, 0))))
+                return true;
+        }
+        return false; 
     }
 }

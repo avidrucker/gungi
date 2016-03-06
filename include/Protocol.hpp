@@ -29,14 +29,13 @@
  * Take out the Orientation typedef, shit is confusing
  * See if the forward declarations can be moved.
  * All the orientation switching is trouble-some, fix it
- * Pieces have colors, ass hole.
  */
 
 #define DEBUG 1
 
 #if (DEBUG)
     #include <iostream>
-    using std::cout;
+    using std::cerr;
     using std::endl;
 #endif
 
@@ -108,7 +107,7 @@ namespace Gungi
      * Enum that stores the current tier of a value.
      */
     enum class Tier : SizeType 
-    { One, Two, Three };
+    { None, One, Two, Three };
 
 
     /**
@@ -132,7 +131,7 @@ namespace Gungi
     { Standby, Placement, Running };
 
         
-    enum class Color : unsigned char
+    enum class Color : SizeType
     { None, Black, White };
 
     const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint2. */
@@ -262,6 +261,8 @@ namespace Gungi
              * @return true if piece can stacked on
              */
             bool dropStackable() const;
+
+            bool canJump() const;
             
         private:
             Head _head; /**<  The head value of the piece. */
@@ -278,15 +279,29 @@ namespace Gungi
 
             PieceSet(Color headColors, Color tailColors);
 
-            Piece& pieceAt(const SizeType& i);
-            SmallPoint3& pointAt(const SizeType& i);
-            IndexedPiece remove(const SizeType& i);
+            void remove(const SizeType& i);
             void append(const IndexedPiece& piece);
             void append(IndexedPiece&& piece);
+            void append(const Piece& piece, const SmallPoint3& pt3);
+            Piece& pieceAt(const SizeType& i);
+            SmallPoint3& pointAt(const SizeType& i);
             const Piece& pieceAt(const SizeType& i) const;
             const SmallPoint3& pointAt(const SizeType& i) const;
 
             std::vector<IndexedPiece> Set;
+    };
+
+    struct IndexState
+    {
+        IndexState(bool state, bool opponent, Tier tier)
+        : validState (state)
+        , onOpponent (opponent)
+        , atTier     (tier)
+        {}
+        
+        bool validState;
+        bool onOpponent;
+        Tier atTier;
     };
 
     const Piece NULL_PIECE; /**< A null piece. */
@@ -600,8 +615,8 @@ namespace Gungi
      * @param o the orientation to interpret the board from
      * @return true if index is a null piece
      */
-    bool isNullAt(const Board& board, const SmallPoint3& pt3, 
-            Orientation o = ORIENTATION_POS);
+    bool isNullAt(const Board& board, const SmallPoint3& pt3);
+
     /**
      * This function will set the board to a null piece at the given point. Note,
      * this does not bounds check. Out of bounds points produce undefined behavior.
@@ -610,7 +625,7 @@ namespace Gungi
      * @param pt3 a SmallPoint3
      * @param o the orientation to interpret the board from
      */
-    void nullifyAt(Board& board, const SmallPoint3& pt3, Orientation o = ORIENTATION_POS);
+    void nullifyAt(Board& board, const SmallPoint3& pt3);
     /**
      * This function will return the lowest available tier at the given pt2. Note,
      * the pt2.x will correspond to board's x-coordinate, and pt2.y will correspond
@@ -622,8 +637,7 @@ namespace Gungi
      * @return index of lowest available tier, if no tier is available returns NO_TIERS_FREE
      * @see NO_TIERS_FREE
      */
-    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2, 
-            Orientation o = ORIENTATION_POS);
+    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2);
     /**
      * This function will return the lowest available tier at the given pt3. Note, the pt3
      * will 'collapse' to a SmalllPoint2 in this case as the y value of the pt3 is of no 
@@ -635,8 +649,8 @@ namespace Gungi
      * @return index of lowest available tier, if no tier is available returns NO_TIERS_FREE
      * @see NO_TIERS_FREE
      */
-    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3, 
-            Orientation o = ORIENTATION_POS);
+    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3);
+
     /**
      * This functions will return true if the board has an available tier at the given pt2.
      * The function will deal with negative to positive orientation conversion.
@@ -645,8 +659,8 @@ namespace Gungi
      * @param o the orientation to interpret the board from
      * @return true if the given index has an open tier
      */
-    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt3, 
-            Orientation o = ORIENTATION_POS);
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt3);
+
     /**
      * This functions will return true if the board has an available tier at the given pt3.
      * The function will deal with negative to positive orientation conversion.
@@ -655,8 +669,7 @@ namespace Gungi
      * @param o the orientation to interpret the board from
      * @return true if the given index has an open tier
      */
-    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3, 
-            Orientation o = ORIENTATION_POS);
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3);
 
     /**
      * This function will evaluate if a given a tower meets a givin predicate. The
@@ -669,8 +682,7 @@ namespace Gungi
      * @param o the orientation to interpret the board from
      * @return true if all tiers in the tower satisfy the predicate
      */
-    bool towerMeets(const Board& board, const SmallPoint2& pt2, TierFilter filter,
-            Orientation o = ORIENTATION_POS);
+    bool towerMeets(const Board& board, const SmallPoint2& pt2, TierFilter filter);
 
     /**
      * This function will evaluate if a given a tower meets a givin predicate. The
@@ -683,8 +695,7 @@ namespace Gungi
      * @param o the orientation to interpret the board from
      * @return true if all tiers in the tower satisfy the predicate
      */
-    bool towerMeets(const Board& board, SmallPoint3 pt3, TierFilter filter,
-            Orientation o = ORIENTATION_POS);
+    bool towerMeets(const Board& board, SmallPoint3 pt3, TierFilter filter);
 
     /**
      * This function will place the piece on board using the specified point. This function
@@ -694,7 +705,7 @@ namespace Gungi
      * @param piece a piece to place
      * @param pt3 point to place piece in
      */
-    void placeAt(Board& board, const Piece& piece, SmallPoint3 pt3);
+    void placeAt(Board& board, const Piece* piece, const SmallPoint3& pt3);
     
 
     /**
@@ -705,8 +716,7 @@ namespace Gungi
      * @param o the current orientation of pt2
      * @return the collection of indices generated (empty if move can't be applied) 
      */
-    SmallPoint2 genIndex2Of(SmallPoint2 pt2, const Move& move, 
-            Orientation o = ORIENTATION_POS);
+    SmallPoint2 genIndex2Of(SmallPoint2 pt2, const Move& move);
 
     /**
      * This function will generate a board state on the given set of indices using the filter
@@ -761,4 +771,7 @@ namespace Gungi
      */
     bool validRunningShift(const Board& board, const Piece& piece, const SmallPoint3& pt3,
             const Move& move, Orientation o = ORIENTATION_POS);
+   
+    bool flatPathHas(const Board& board, SmallPoint2 pt2, const Move& move,
+            PieceFilter filter);
 }

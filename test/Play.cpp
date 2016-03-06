@@ -5,15 +5,15 @@
 /**
  * Notes:
  * Using Clang && GCC on 32-Bit:
- * sizeof (Piece) = 4
- * sizeof (uint8_t) = 1
- * sizeof (Point3) = 3
+ * sizeof (Piece) = ?
+ * sizeof (uint8_t) = ?
+ * sizeof (SmallPoint3) = ?
  * sizeof (IndexedPiece) = ?
  *
  * On 64-Bit:
  * sizeof (Piece) = TBD
  * sizeof (uint8_t) = TBD
- * sizeof (Point3) = TBD
+ * sizeof (SmallPoint3) = TBD
  * sizeof (IndexedPiece) = TBD
  */
 
@@ -33,13 +33,13 @@ void displayPieces(const Game& game);
 void displayState(const Game& game)
 {
     const Board* board = game.gameBoard();
-    const Player* one = game.playerOne();
-    const Player* two = game.playerTwo();
+   // const Player* one = game.playerOne();
+   // const Player* two = game.playerTwo();
     displayBoard(*board);
-    cout << "Player One: " << endl;
-    displayPlayerSet(*one);
-    cout << "Player Two: " << endl;
-    displayPlayerSet(*two);
+   // cout << "Player One: " << endl;
+   // displayPlayerSet(*one);
+   // cout << "Player Two: " << endl;
+   // displayPlayerSet(*two);
 //    displayPieces(game);
 }
 
@@ -47,8 +47,8 @@ int main()
 {
     /*
         cout << sizeof (Piece) << endl
-        << sizeof (size_t) << endl
-        << sizeof (Point3) << endl
+        << sizeof (uint8_t) << endl
+        << sizeof (SmallPoint3) << endl
         << sizeof (IndexedPiece) << endl;
     */
 
@@ -57,14 +57,19 @@ int main()
     placePieces(game);
     game.start(); // Set Phase to Running
     displayState(game);
-    for (SizeType i = 0; i < 9; ++i)
+    /*
+    for (SizeType i = 0; i < 23; ++i)
     {
-        SizeType soldier = 14 + i;
-        game.move(soldier, Move(1, Direction::N));
+        game.move(i, Move(1, Direction::N));
         displayState(game);
-        game.move(soldier, Move(1, Direction::N));
+        game.move(i, Move(1, Direction::N));
         displayState(game);
     }
+    */
+    game.move(10, Move(3, Direction::N));
+    displayState(game);
+    game.move(10, Move(3, Direction::N));
+    displayState(game);
     
     return 0;
 }
@@ -206,6 +211,7 @@ void displayBoard(const Board& board)
         }
         cout << endl;
     }
+    cout << endl;
 }
 
 void displayPlayerSet(const Player& player)
@@ -239,7 +245,7 @@ void displayPieces(const Game& game)
         else 
             cout << getTailString(piece) << " --> ";
         cout << " Point3: " << pieceSet.pointAt(i) << "  |  ";
-        if (i != 0 && i % 2 == 0) cout << endl;
+        if (i % 2 != 0) cout << endl;
     }
-    cout << endl;
+    cout << endl << endl;
 }

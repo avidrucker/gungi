@@ -35,92 +35,29 @@ namespace Gungi
     , _numPieces    (STD_PIECE_CT)
     {}
 
-    bool Player::drop(const SizeType& i, SmallPoint3 pt3)
+    void Player::drop(const SizeType& i, const SmallPoint3& pt3)
     {
-        if (not(isUnbounded(pointAt(i))))
-            return false;
-
-        if (not(validPlacementDrop(*_gameBoard, pieceAt(i), pt3, _orientation)))
-            return false;
-         
-        if (_orientation == ORIENTATION_NEG)
-            pt3 = asPositive3(pt3);
-
-        pt3.y = availableTierAt(*_gameBoard, pt3);
-
         _pieces.pointAt(i) = pt3;
-        placeAt(*_gameBoard, pieceAt(i), pt3);
-        return true;
+        placeAt(*_gameBoard, &_pieces.pieceAt(i), pt3);
+        --_onHand;
+        ++_onBoard;
     }
 
-    bool Player::shift(const SizeType& i, const Move& move)
+    void Player::updatePoint(const SizeType& i, const SmallPoint3& pt3)
     {
-        #if (DEBUG)
-            cout << "Player.shift() --> _orientation: " << _orientation << endl;
-            cout << "Player.shift() --> Point at i: " << pointAt(i) << endl;
-        #endif
-        
-        auto pt2 = genIndex2Of(pointAt(i), move, _orientation);
-
-        if (_orientation == ORIENTATION_NEG)
-            pt2 = asPositive2(pt2);
-
-        auto pieceMoveSet = pieceAt(i).onHead() ? genHeadMoveSet(pieceAt(i), 
-                asTier(pointAt(i).y)) : genTailMoveSet(pieceAt(i), asTier(pointAt(i).y));
-
-        auto itr = std::find_if(pieceMoveSet.begin(), pieceMoveSet.end(), [&move] (const Move& rhs)
-                { return move == rhs; });
-
-        if (itr == pieceMoveSet.end())
-        {
-            #if (DEBUG)
-                cout << "Player.shift() --> Move not in piece's moveset." << endl;
-            #endif
-            return false;
-
-        }
-
-        #if (DEBUG)
-            cout << "Player.shift() --> Move in piece's moveset." << endl;
-            cout << "Player.shift() --> pt2: " << pt2 << endl;
-        #endif
-
-        if (isUnbounded(pt2))
-            return false;
-
-        auto pt3 = SmallPoint3(pt2);
-        pt3.y = availableTierAt(*_gameBoard, pt3);
-
-        if (pt3.y == NO_TIERS_FREE)
-        {
-            auto pieceColor = (*((*_gameBoard)[pt3])).getActiveColor();
-            if (pieceColor == _color)
-                return false;
-                         
-        }
-
-        if (not(isUnbounded(pointAt(i))))
-            nullifyAt(*_gameBoard, pointAt(i));
-       
-        #if (DEBUG)
-            cout << "Player.shift() --> pt3: " << pt3 << endl;
-        #endif
-
         _pieces.pointAt(i) = pt3;
-        placeAt(*_gameBoard, pieceAt(i), pointAt(i));
-        return true;
     }
 
-    void Player::transfer(const SizeType& i, Player& player)
+    void Player::remove(const SizeType& i)
     {
-        nullifyAt(*_gameBoard, pointAt(i), _orientation);
-        _nullifyIndex(i);
-        player.append(_pieces.remove(i));
+        _pieces.remove(i);
+        --_onBoard;
     }
 
-    void Player::append(IndexedPiece pc)
+    void Player::append(const Piece& pc)
     {
-        _pieces.append(pc);
+        _pieces.append(pc, UBD_PT3);
+        ++_onHand;
     }
 
     const IndexedPiece& Player::operator [] (const SizeType& i) const
@@ -205,6 +142,179 @@ namespace Gungi
         }
     }
 
+    IndexState Game::drop(const SizeType& i, SmallPoint3 pt3)
+    {
+        #if (DEBUG)
+            cerr << "In Game::drop()"<< endl;
+        #endif
+
+        auto state = assessDrop(_onesTurn, i, pt3);
+        if (not(state.validState))
+            return state;
+        
+        #if (DEBUG)
+            cerr << "In Game::drop(), drop is valid." << endl;
+        #endif
+
+        Player* player = _onesTurn ? &_one : &_two;
+        if (not(player->getOrientation()))
+            pt3 = asPositive3(pt3);
+
+        pt3.y = availableTierAt(_gameBoard, pt3);
+
+        #if (DEBUG)
+            cerr << "In Game::drop(), pt3: " << pt3 << endl;
+        #endif
+
+        player->updatePoint(i, pt3);
+        placeAt(_gameBoard, &player->pieceAt(i), pt3);
+        _flipPlayer();
+        return state;
+    }
+
+
+    IndexState Game::move(const SizeType& i, const Move& move)
+    {
+        #if (DEBUG)
+            cerr <<  "In Game::move()" << endl;
+        #endif
+
+        auto state = assessMove(_onesTurn, i, move);
+
+        if (not(state.validState))
+            return state;
+
+        #if (DEBUG)
+            cerr << "In Game::move(), move is valid." << endl;
+        #endif
+
+        Player* player = _onesTurn ? &_one : &_two;
+        auto tmp = player->getOrientation() ? genIndex2Of(player->pointAt(i), move) :
+            genIndex2Of(asPositive3(player->pointAt(i)), move);
+        auto pt3 = SmallPoint3(tmp);
+        
+        if (player->getOrientation() == ORIENTATION_NEG)
+            pt3 = asPositive3(pt3);
+        
+        pt3.y = availableTierAt(_gameBoard, pt3);
+    
+        #if (DEBUG)
+            cerr << "In Game::move(), destination pt3: " << pt3 << endl;
+        #endif
+
+        nullifyAt(_gameBoard, player->pointAt(i));
+        player->updatePoint(i, pt3); 
+        placeAt(_gameBoard, &player->pieceAt(i), pt3);
+        _flipPlayer();
+        return state;
+    }
+            
+    IndexState Game::assessDrop(bool playerOne, const SizeType& i, SmallPoint3 pt3) const
+    {
+        #if (DEBUG)
+            cerr << "In Game::assessDrop()" << endl;
+        #endif
+
+        const Player* player = playerOne ? &_one : &_two;
+        auto piece = player->pieceAt(i);
+        auto point = player->pointAt(i);
+        auto positiveOrientation = player->getOrientation();
+
+        if (_phase == Phase::Standby || not(isUnbounded(point)) || 
+                not(validPlacementDrop(_gameBoard, piece, pt3, positiveOrientation)))
+            return IndexState(false, false, Tier::None);
+
+        #if (DEBUG)
+            cerr << "In Game::assessDrop(), _phase is valid, point is unbounded, and drop is valid." 
+                << endl;
+        #endif
+
+        if (not(positiveOrientation))
+            pt3 = asPositive3(pt3);
+
+        pt3.y = availableTierAt(_gameBoard, pt3);
+        
+
+        #if (DEBUG)
+            cerr << "In Game::assessDrop(), evaluation pt3: " << pt3 << endl;
+        #endif
+
+        bool onOpponent = pt3.y == 0 ? false : 
+            player->getOppColor() == _gameBoard(pt3.x, pt3.z, pt3.y - 1)->getActiveColor();
+    
+        return IndexState(true, onOpponent, asTier(pt3.y));
+    }
+
+    IndexState Game::assessMove(bool playerOne, const SizeType& i, const Move& move) const
+    {
+        #if (DEBUG)
+            cerr << "In Game::assessMove()" << endl;
+        #endif
+
+        const Player* player = playerOne ? &_one : &_two;
+        auto piece = player->pieceAt(i);
+        auto point = player->pointAt(i);
+        auto positiveOrientation = player->getOrientation();
+
+        if (isUnbounded(point))
+            return IndexState(false, false, Tier::None);
+
+        if (point.y != 2)
+        {
+            auto pieceAbove = SmallPoint3(point.x, point.z, point.y + 1);
+            if (not(isNullAt(_gameBoard, pieceAbove)))
+                return IndexState(false, false, Tier::None);
+
+            #if (DEBUG)
+                cerr << "In Game::assessMove(), point: " << point << endl;
+                cerr << "In Game::assessMove(), pieceAbove: " << pieceAbove << endl;
+            #endif
+        }
+
+        auto pt2 = positiveOrientation ? genIndex2Of(point, move) : 
+            genIndex2Of(asPositive2(point), move);
+
+        if (isUnbounded(pt2))
+            return IndexState(false, false, Tier::None);
+
+        #if (DEBUG)
+            cerr << "In Game::assessMove(), pt2 is bounded." << endl;
+            cerr << "In Game::assessMove(), evaluation pt2: " << pt2 << endl;
+        #endif
+
+        auto pieceMoveSet = piece.onHead() ? genHeadMoveSet(piece, asTier(point.y)) : 
+            genTailMoveSet(piece, asTier(point.y));
+
+        auto itr = std::find_if(pieceMoveSet.begin(), pieceMoveSet.end(), [&move] (const Move& rhs)
+                { return move == rhs; });
+
+        if (itr == pieceMoveSet.end())
+            return IndexState(false, false, Tier::None);
+
+        #if (DEBUG)
+            cerr <<  "In Game::assessMove(), move is in piece's moveset." << endl;
+        #endif
+
+        if (not(piece.canJump()) && flatPathHas(_gameBoard, pt2, move, [] (const Piece& piece)
+                    { return not(piece.isNull());}))
+            return IndexState(false, false, Tier::None);
+
+        auto pt3 = SmallPoint3(pt2);
+        pt3.y = availableTierAt(_gameBoard, pt3);
+
+        IndexState state { true, true, Tier::None };
+        if (pt3.y == 0)
+            state.onOpponent = false;
+        else
+        {
+            SizeType indexBelow = pt3.y == UNBOUNDED ? 2 : pt3.y - 1;
+            state.onOpponent = player->getOppColor() == 
+                _gameBoard(pt3.x, pt3.z, indexBelow)->getActiveColor();
+        }
+
+        return state;
+    }
+
     const Board* Game::gameBoard() const
     {
         return &_gameBoard;
@@ -223,29 +333,6 @@ namespace Gungi
     const Player& Game::currentPlayer() const
     {
         return *_currentPlayer; 
-    }
-
-    bool Game::drop(const SizeType& i, const SmallPoint3& pt)
-    {
-        if (_phase == Phase::Standby)
-            return false;
-
-        bool result = _currentPlayer->drop(i, pt);
-        if (result)
-            _flipPlayer();
-        return result;
-    }
-
-    bool Game::move(const SizeType& i, const Move& move)
-    {
-        if (!_running())
-            return false;
-
-        if (!_currentPlayer->shift(i,move))
-            return false;
-
-        _flipPlayer();
-        return true;
     }
 
     const Phase& Game::getPhase() const
