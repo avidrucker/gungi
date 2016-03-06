@@ -25,14 +25,14 @@
 namespace Gungi
 {
     Player::Player(Board* gameBoard, const Color& color, const Color& oppColor, Orientation o)
-    : _pieces       (color, oppColor)
-    , _gameBoard    (gameBoard)
-    , _color        (color)
-    , _oppColor     (oppColor)
-    , _orientation  (o)
-    , _onBoard      (0)
-    , _onHand       (STD_PIECE_CT)
-    , _numPieces    (STD_PIECE_CT)
+    : _pieces         (color, oppColor)
+    , _gameBoard      (gameBoard)
+    , _color          (color)
+    , _oppColor       (oppColor)
+    , _orientation    (o)
+    , _onBoard        (0)
+    , _onHand         (STD_PIECE_CT)
+    , _numPieces      (STD_PIECE_CT)
     {}
 
     void Player::drop(const SizeType& i, const SmallPoint3& pt3)
@@ -119,6 +119,15 @@ namespace Gungi
         _pieces.pointAt(i) = UBD_PT3;
     }
 
+    SizeType Player::getIndexAt(const SmallPoint3& pt3) const
+    {
+        for (SizeType i = 0; i < _pieces.Set.size(); ++i)
+            if (_pieces.pointAt(i) == pt3)
+                return i;
+
+        return UNBOUNDED;
+    }
+
     Game::Game()
     : _onesTurn      (true)
     , _gameBoard     (BOARD_WIDTH, BOARD_DEPTH, BOARD_HEIGHT, &NULL_PIECE)
@@ -197,7 +206,16 @@ namespace Gungi
             pt3 = asPositive3(pt3);
         
         pt3.y = availableTierAt(_gameBoard, pt3);
-    
+
+        if (state.onOpponent)
+        {
+            #if (DEBUG)
+                cerr << "In Game::move(), on opponent." << endl;
+            #endif
+            --pt3.y;
+            _takeAndTransfer(i, pt3);
+        }
+
         #if (DEBUG)
             cerr << "In Game::move(), destination pt3: " << pt3 << endl;
         #endif
@@ -206,6 +224,7 @@ namespace Gungi
         player->updatePoint(i, pt3); 
         placeAt(_gameBoard, &player->pieceAt(i), pt3);
         _flipPlayer();
+
         return state;
     }
             
@@ -251,7 +270,7 @@ namespace Gungi
             cerr << "In Game::assessMove()" << endl;
         #endif
 
-        const Player* player = playerOne ? &_one : &_two;
+        const Player* player = playerOne ? &_one : &_two; //Already have a player* pointer?
         auto piece = player->pieceAt(i);
         auto point = player->pointAt(i);
         auto positiveOrientation = player->getOrientation();
@@ -299,7 +318,8 @@ namespace Gungi
                     { return not(piece.isNull());}))
             return IndexState(false, false, Tier::None);
 
-        auto pt3 = SmallPoint3(pt2);
+        auto pt3 = player->getOrientation() == ORIENTATION_POS ? SmallPoint3(pt2) : 
+            asPositive3(pt2);
         pt3.y = availableTierAt(_gameBoard, pt3);
 
         IndexState state { true, true, Tier::None };
@@ -307,9 +327,18 @@ namespace Gungi
             state.onOpponent = false;
         else
         {
-            SizeType indexBelow = pt3.y == UNBOUNDED ? 2 : pt3.y - 1;
-            state.onOpponent = player->getOppColor() == 
+            SizeType indexBelow = pt3.y == NO_TIERS_FREE ? 2 : pt3.y - 1;
+            state.onOpponent = player->getColor() != 
                 _gameBoard(pt3.x, pt3.z, indexBelow)->getActiveColor();
+
+            #if (DEBUG)
+                std::string oppcolor = player->getColor() == Color::Black ? "Black" : "White";
+                std::string actColor = _gameBoard(pt3.x, pt3.z, indexBelow)->getActiveColor() ==
+                    Color::Black ? "Black" : "White";
+                    
+                cerr << "In Game::assessMove(), player's color: " << oppcolor << endl;
+                cerr << "In Game::assessMove(), piece active's color: " << actColor << endl;
+            #endif
         }
 
         return state;
@@ -330,9 +359,9 @@ namespace Gungi
         return &_two;
     }
 
-    const Player& Game::currentPlayer() const
+    const Player* Game::currentPlayer() const
     {
-        return *_currentPlayer; 
+        return _currentPlayer; 
     }
 
     const Phase& Game::getPhase() const
@@ -349,5 +378,24 @@ namespace Gungi
     bool Game::_running() const
     {
         return _phase == Phase::Running;
+    }
+
+    void Game::_takeAndTransfer(const SizeType& i, const SmallPoint3& oppPt3)
+    {
+        #if (DEBUG)
+            cerr << "In Game::_takeAndTransfer()" << endl;
+            cerr << "In Game::_takeAndTransfer(), i: " << (size_t) i << endl;
+            cerr << "In Game::_takeAndTransfer(), oppPt3: " << oppPt3 << endl;
+        #endif
+
+        Player* opponent = _onesTurn ? &_two : &_one;
+        auto pieceIndex = opponent->getIndexAt(oppPt3);
+        if (pieceIndex == UNBOUNDED)
+            return;
+       
+        //Returning Piece&& and using move-semantics can shrink these 3 lines to 1
+        auto piece = opponent->pieceAt(pieceIndex);
+        opponent->remove(pieceIndex);
+        _currentPlayer->append(piece); 
     }
 }

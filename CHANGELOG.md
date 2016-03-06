@@ -40,6 +40,11 @@ Changelog
 
 03/05/2016
 ----------
-24. Implemented updatePoint method in Engine.hpp/cpp
+24. Implemented updatePoint() method in Engine.hpp/cpp
 25. Implemented assessMove/assessDrop() methods in Engine.hpp/cpp
 26. Modified move/drop() methods in Engine.hpp/cpp
+
+03/06/2016
+----------
+27. Implemented \_takeAndTransfer() method in Engine.hpp/cpp
+28. Implemented Commander check bitfield enum in Protocol.hpp

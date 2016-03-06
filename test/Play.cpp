@@ -29,12 +29,13 @@ void placePieces(Game& game);
 void displayBoard(const Board& board);
 void displayPlayerSet(const Player& player);
 void displayPieces(const Game& game);
-
 void displayState(const Game& game)
 {
     const Board* board = game.gameBoard();
-   // const Player* one = game.playerOne();
-   // const Player* two = game.playerTwo();
+    if (game.playerOne() == game.currentPlayer())
+        cout << "Player One's Turn" << endl;
+    else
+        cout << "Player Two's Turn" << endl;
     displayBoard(*board);
    // cout << "Player One: " << endl;
    // displayPlayerSet(*one);
@@ -66,11 +67,25 @@ int main()
         displayState(game);
     }
     */
-    game.move(10, Move(3, Direction::N));
-    displayState(game);
-    game.move(10, Move(3, Direction::N));
-    displayState(game);
-    
+    for (SizeType i = 12; i < 14; ++i) //Archer
+    {
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+    }
     return 0;
 }
 
@@ -234,7 +249,7 @@ void displayPlayerSet(const Player& player)
 
 void displayPieces(const Game& game)
 {
-    auto pieceSet = game.currentPlayer().getFullSet();
+    auto pieceSet = game.currentPlayer()->getFullSet();
     
     for (SizeType i = 0; i < pieceSet.Set.size(); ++i)
     {

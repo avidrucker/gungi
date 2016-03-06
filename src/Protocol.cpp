@@ -150,6 +150,15 @@ namespace Gungi
             (!_onHead && _tail == Tail::Jounin);
     }
 
+    bool Piece::canExpandMobileRange() const
+    {
+        if (not(_onHead))
+            return not(_tail == Tail::DragonKing || _tail == Tail::Phoenix);
+        return not(_head == Head::Prodigy || _head == Head::HiddenDragon || 
+                _head == Head::Commander || _head == Head::Catapult ||
+                _head == Head::Fortress);
+    }
+
     // This constructor is not good for the eyes o.O
     PieceSet::PieceSet(Color headColors, Color tailColors)
     {

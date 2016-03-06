@@ -26,6 +26,13 @@
  * The control of evaluating good/bad moves should under the control of the game engine. The
  * player should only be allowed to directly place a piece upon after the game engine has 
  * assured that it is a valid move.
+ * Consider using Bitfields for IndexState, maybe even drop the tier. See what other options
+ * will be useful., Commander in check, game over, etc.
+ * Use an 8-bit bitfield for Commander's in-check positions. He has eight, eh?
+ * Player remove method, can return a piece&& so that move-semantics can be applied during
+ * transfer
+ * Remove SmallPoint3 maneuvering where possible, the game should in two-dimensional manner.
+ * Consider adding idle player *, since access to opponent is needed at times as well.
  */
 
 namespace Gungi
@@ -105,6 +112,8 @@ namespace Gungi
              */
             const SizeType& numPieces() const;
 
+            SizeType getIndexAt(const SmallPoint3& pt3) const;
+
         private:
             void _nullifyIndex(const SizeType& i);
 
@@ -162,11 +171,7 @@ namespace Gungi
 
             const Player* playerTwo() const;
 
-            /**
-             * This method will return const pointer to the current player.
-             * @return a const pointer to the current player.
-             */
-            const Player& currentPlayer() const;
+            const Player* currentPlayer() const;
             /**
              * This method will return the current phase of the game.
              * @return a const reference to the current phase of the game.
@@ -187,6 +192,8 @@ namespace Gungi
              * @see Phase
              */
             bool _running() const;
+
+            void _takeAndTransfer(const SizeType& i, const SmallPoint3& pt3);
 
             bool _onesTurn; /**< Flag indicating player one's turn. */
             Board _gameBoard; /**< The game board. */

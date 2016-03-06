@@ -134,6 +134,18 @@ namespace Gungi
     enum class Color : SizeType
     { None, Black, White };
 
+    enum class Commander : SizeType
+    {
+        NW = 0x01,
+        N  = 0x02,
+        NE = 0x04,
+        E  = 0x08,
+        SE = 0x10,
+        S  = 0x20,
+        SW = 0x40,
+        W  = 0x80
+    };
+
     const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint2. */
     const SmallPoint3 UBD_PT3 { UNBOUNDED, UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint3. */
 
@@ -263,6 +275,8 @@ namespace Gungi
             bool dropStackable() const;
 
             bool canJump() const;
+
+            bool canExpandMobileRange() const;
             
         private:
             Head _head; /**<  The head value of the piece. */
