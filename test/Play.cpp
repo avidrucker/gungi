@@ -1,7 +1,21 @@
 #include <iostream>
-#include <ctime>
 
-#include <Gungi.hpp>
+#include <Engine.hpp>
+
+/**
+ * Notes:
+ * Using Clang && GCC on 32-Bit:
+ * sizeof (Piece) = ?
+ * sizeof (uint8_t) = ?
+ * sizeof (SmallPoint3) = ?
+ * sizeof (IndexedPiece) = ?
+ *
+ * On 64-Bit:
+ * sizeof (Piece) = TBD
+ * sizeof (uint8_t) = TBD
+ * sizeof (SmallPoint3) = TBD
+ * sizeof (IndexedPiece) = TBD
+ */
 
 using std::cout;
 using std::cin;
@@ -10,30 +24,68 @@ using namespace Gungi;
 
 char getHeadChar(const Head& head);
 char getTailChar(const Tail& tail);
-void print(const IndexedPiece& piece);
+void print(const Piece& piece);
+void placePieces(Game& game);
 void displayBoard(const Board& board);
+void displayPlayerSet(const Player& player);
+void displayPieces(const Game& game);
+void displayState(const Game& game)
+{
+    const Board* board = game.gameBoard();
+    if (game.playerOne() == game.currentPlayer())
+        cout << "Player One's Turn" << endl;
+    else
+        cout << "Player Two's Turn" << endl;
+    displayBoard(*board);
+   // cout << "Player One: " << endl;
+   // displayPlayerSet(*one);
+   // cout << "Player Two: " << endl;
+   // displayPlayerSet(*two);
+//    displayPieces(game);
+}
 
 int main()
 {
-    srand(time(0));
+    /*
+        cout << sizeof (Piece) << endl
+        << sizeof (uint8_t) << endl
+        << sizeof (SmallPoint3) << endl
+        << sizeof (IndexedPiece) << endl;
+    */
 
     Game game;
-    game.start();
-    const Board* board = &game.gameBoard();
-    for (auto i = 0u; i < 23; ++i)
+    game.start(); // Set Phase to Placement
+    placePieces(game);
+    game.start(); // Set Phase to Running
+    displayState(game);
+    /*
+    for (SizeType i = 0; i < 23; ++i)
     {
-        size_t x = rand() % 9;
-        size_t y = rand() % 9;
-        size_t z = rand() % 3;
-        Point3 pt {x,y,z};
-        game.placeOnBoard(i,pt);
-        x = rand() % 9;
-        y = rand() % 9;
-        z = rand() % 3;
-        pt = Point3(x,y,z);
-        game.placeOnBoard(i,pt);
+        game.move(i, Move(1, Direction::N));
+        displayState(game);
+        game.move(i, Move(1, Direction::N));
+        displayState(game);
     }
-        displayBoard(*board);
+    */
+    for (SizeType i = 12; i < 14; ++i) //Archer
+    {
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+        game.move(i, Move(2, Direction::N));
+        displayState(game);
+    }
     return 0;
 }
 
@@ -95,7 +147,7 @@ char getTailChar(const Tail& tail)
         }
 }
 
-void print(const IndexedPiece& piece)
+void print(const Piece& piece)
 {
     if (piece.isNull())
         cout << ' ';
@@ -108,31 +160,107 @@ void print(const IndexedPiece& piece)
     }
 }
 
+void placePieces(Game& game)
+{
+    game.drop(0,  SmallPoint3(0, 0, 0)); // Commander
+    game.drop(0,  SmallPoint3(0, 0, 0)); // Commander
+    game.drop(1,  SmallPoint3(1, 0, 0)); // Captain 
+    game.drop(1,  SmallPoint3(1, 0, 0)); // Captain 
+    game.drop(2,  SmallPoint3(0, 1, 0)); // Captain 
+    game.drop(2,  SmallPoint3(0, 1, 0)); // Captain 
+    game.drop(3,  SmallPoint3(1, 1, 0)); // Samurai
+    game.drop(3,  SmallPoint3(1, 1, 0)); // Samurai 
+    game.drop(4,  SmallPoint3(2, 0, 0)); // Samurai 
+    game.drop(4,  SmallPoint3(2, 0, 0)); // Samurai 
+    game.drop(5,  SmallPoint3(2, 1, 0)); // Ninja 
+    game.drop(5,  SmallPoint3(2, 1, 0)); // Ninja 
+    game.drop(6,  SmallPoint3(3, 0, 0)); // Ninja 
+    game.drop(6,  SmallPoint3(3, 0, 0)); // Ninja 
+    game.drop(7,  SmallPoint3(3, 1, 0)); // Ninja 
+    game.drop(7,  SmallPoint3(3, 1, 0)); // Ninja 
+    game.drop(8,  SmallPoint3(4, 0, 0)); // Catapult 
+    game.drop(8,  SmallPoint3(4, 0, 0)); // Catapult 
+    game.drop(9,  SmallPoint3(4, 1, 0)); // Fortress 
+    game.drop(9,  SmallPoint3(4, 1, 0)); // Fortress 
+    game.drop(10, SmallPoint3(5, 0, 0)); // Hidden Dragon 
+    game.drop(10, SmallPoint3(5, 0, 0)); // Hidden Dragon 
+    game.drop(11, SmallPoint3(5, 1, 0)); // Prodigy 
+    game.drop(11, SmallPoint3(5, 1, 0)); // Prodigy 
+    game.drop(12, SmallPoint3(6, 0, 0)); // Archer
+    game.drop(12, SmallPoint3(6, 0, 0)); // Archer
+    game.drop(13, SmallPoint3(6, 1, 0)); // Archer
+    game.drop(13, SmallPoint3(6, 1, 0)); // Archer
+    game.drop(14, SmallPoint3(0, 2, 0)); // Soldier 
+    game.drop(14, SmallPoint3(0, 2, 0)); // Soldier 
+    game.drop(15, SmallPoint3(1, 2, 0)); // Soldier 
+    game.drop(15, SmallPoint3(1, 2, 0)); // Soldier 
+    game.drop(16, SmallPoint3(2, 2, 0)); // Soldier 
+    game.drop(16, SmallPoint3(2, 2, 0)); // Soldier 
+    game.drop(17, SmallPoint3(3, 2, 0)); // Soldier 
+    game.drop(17, SmallPoint3(3, 2, 0)); // Soldier 
+    game.drop(18, SmallPoint3(4, 2, 0)); // Soldier 
+    game.drop(18, SmallPoint3(4, 2, 0)); // Soldier 
+    game.drop(19, SmallPoint3(5, 2, 0)); // Soldier 
+    game.drop(19, SmallPoint3(5, 2, 0)); // Soldier 
+    game.drop(20, SmallPoint3(6, 2, 0)); // Soldier 
+    game.drop(20, SmallPoint3(6, 2, 0)); // Soldier 
+    game.drop(21, SmallPoint3(7, 2, 0)); // Soldier 
+    game.drop(21, SmallPoint3(7, 2, 0)); // Soldier 
+    game.drop(22, SmallPoint3(8, 2, 0)); // Soldier 
+    game.drop(22, SmallPoint3(8, 2, 0)); // Soldier 
+}
+
 void displayBoard(const Board& board)
 {
-    for (auto i = 0u; i < board.getWidth(); ++i)
-    { 
-        cout << '|';
-        for (auto j = 0u; j < board.getHeight(); ++j)
+    for (int j = 8; j != -1; --j)
+    {
+        for (SizeType k = 0; k < board.getHeight(); ++k)
         {
-            for (auto k = 0u; k < board.getLength(); ++k)
+            for (SizeType i = 0; i < board.getWidth(); ++i)
             {
-                auto p = board(i,k,j);
-                print(*p);
+                cout << '|';
+                auto p = board(i,j,k);
+                print (*p);
             }
-            cout << '|';
+            cout << "|  ";
         }
-
-        cout << endl << ' ';
-
-        for (auto j = 0u; j < board.getHeight(); ++j)
-        {
-            for (auto k = 0u; k < board.getLength(); ++k)
-                cout << '-';
-
-            cout << ' ';
-        }
-
         cout << endl;
     }
+    cout << endl;
+}
+
+void displayPlayerSet(const Player& player)
+{
+    auto pieceSet = player.getFullSet();
+    
+    for (SizeType i = 0; i < pieceSet.Set.size(); ++i)
+    {
+        cout << "Index: " << (size_t) i << " --> Piece: ";
+        const auto piece = pieceSet.pieceAt(i);
+        if (piece.onHead()) 
+            cout << getHeadString(piece) << " --> ";
+        else 
+            cout << getTailString(piece) << " --> ";
+        cout << " Point3: " << pieceSet.pointAt(i) << "  |  ";
+        if (i != 0 && i % 2 == 0) cout << endl;
+    }
+    cout << endl;
+}
+
+void displayPieces(const Game& game)
+{
+    auto pieceSet = game.currentPlayer()->getFullSet();
+    
+    for (SizeType i = 0; i < pieceSet.Set.size(); ++i)
+    {
+        cout << "Index: " << (size_t) i << " --> Piece: ";
+        const auto piece = pieceSet.pieceAt(i);
+        if (piece.onHead()) 
+            cout << getHeadString(piece) << " --> ";
+        else 
+            cout << getTailString(piece) << " --> ";
+        cout << " Point3: " << pieceSet.pointAt(i) << "  |  ";
+        if (i % 2 != 0) cout << endl;
+    }
+    cout << endl << endl;
 }

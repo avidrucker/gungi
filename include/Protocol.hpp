@@ -17,264 +17,775 @@
 #pragma once
 
 #include <cstdint>
-#include <list>
-#include <array>
+#include <vector>
+#include <tuple>
+#include <algorithm>
+#include <string>
 
-#include "Matrix.hpp"
+#include <Matrix.hpp>
+
+/**
+ * Implement the genIndices2 function
+ * Take out the Orientation typedef, shit is confusing
+ * See if the forward declarations can be moved.
+ * All the orientation switching is trouble-some, fix it
+ */
+
+#define DEBUG 1
+
+#if (DEBUG)
+    #include <iostream>
+    using std::cerr;
+    using std::endl;
+#endif
 
 namespace Gungi
 {
-    constexpr uint8_t BOARD_SIZE = 9;
-    constexpr uint8_t BOARD_TIERS = 3;
-    constexpr uint8_t NUM_FRONT_PIECES = 10;
-    constexpr uint8_t NUM_BACK_PIECES = 10; 
+    class Move;
+    class Piece;
 
-    constexpr uint8_t INFINITE_RANGE = ~0;
+    using SizeType     = uint8_t;
+    using SmallPoint2  = Point2<SizeType>;
+    using SmallPoint3  = Point3<SizeType>;
+    using MoveSet      = std::vector<Move>;
+    using Board        = Matrix3<const Piece*, SizeType>;
+    using IndexedPiece = std::tuple<Piece, SmallPoint3>;
+    using Orientation  = bool;
+    using Indices2     = std::vector<SmallPoint2>;
+    using Indices3     = std::vector<SmallPoint3>;
+    using PieceFilter  = bool(*)(const Piece&);
+    using TierFilter   = bool(*)(const SizeType& i, const Piece&);
+    using StateFilter  = bool(*)(const SmallPoint3& pt3, const Piece&);
 
-    enum class Direction : uint8_t 
-    { NW, N, NE, E, SE, S, SW, W };
+    #if (DEBUG)
+        std::ostream& operator << (std::ostream& out, const SmallPoint2& pt2);
+        std::ostream& operator << (std::ostream& out, const SmallPoint3& pt3);
+    #endif
 
-    class Move
-    {
-        using MagnitudeType = uint8_t;
-
-        public:
-            Move(const MagnitudeType& magnitude, const Direction& direction);
-            Move(const MagnitudeType& magnitude, const Direction& direction, 
-                    const MagnitudeType& nextMagnitude, const Direction& nextDirection);
-            ~Move();
-            const MagnitudeType& getMagnitude() const;
-            const Direction& getDirection() const;
-            Move* getNext() const;
-
-        private:
-            const MagnitudeType _magnitude;
-            const Direction _direction;
-            Move* _next;
-    };
-
-    using MoveSet = std::list<Move>;
-
-    enum class Tier : uint8_t 
-    { One, Two, Three };
+    constexpr SizeType BOARD_WIDTH           = 9; /**< Standard Gungi board width (Cols). */
+    constexpr SizeType BOARD_DEPTH           = 9; /** Standard Gungi board depth (Rows). */
+    constexpr SizeType BOARD_HEIGHT          = 3; /**< Standard amount of tiers in Gungi board.*/
+    constexpr SizeType FRONT_PCS_CT          = 10; /**< Count of front side pieces. */
+    constexpr SizeType BACK_PCS_CT           = 10; /**< Count of back side pieces. */
+    constexpr SizeType UNBOUNDED             = ~0; /**< Indicates unbounded point. */
+    constexpr SizeType NO_TIERS_FREE         = ~0; /**< Indicates lack of available tiers. */
+    constexpr SizeType VALID_PLCMT_DEPTH     = 3; /**< Placement phase allowable depth limit. */
+    constexpr SizeType STD_PIECE_CT          = 23; /**< Standard initial piece count per player. */
+    constexpr SizeType CAPTAIN_RANK          = 12; /**< Rank value of captain. */
+    constexpr SizeType SAMURAI_RANK          = 10; /**< Rank value of samurai. */
+    constexpr SizeType NINJA_RANK            = 8; /**< Rank value of ninja. */
+    constexpr SizeType HIDDEN_DRAGON_RANK    = 8; /**< Rank value of hidden dragon. */
+    constexpr SizeType CATAPULT_RANK         = 6; /**< Rank value of catapult. */
+    constexpr SizeType FORTRESS_RANK         = 6; /**< Rank value of fortress. */
+    constexpr SizeType PRODIGY_RANK          = 4; /**< Rank value of prodigy. */
+    constexpr SizeType ARCHER_RANK           = 4; /**< Rank value of archer. */
+    constexpr SizeType SOLDIER_RANK          = 2; /**< Rank value of soldier. */
+    constexpr SizeType NO_HEAD               = 0; /**< Indicates piece wihout head . */
+    constexpr SizeType DRAGON_KING_RANK      = 12; /**< Rank value of dragon king. */
+    constexpr SizeType LANCE_RANK            = 10; /**< Rank value of lance. */
+    constexpr SizeType PHOENIX_RANK          = 10; /**< Rank value of phoenix. */
+    constexpr SizeType JOUNIN_RANK           = 8; /**< Rank value of jounin. */
+    constexpr SizeType ARROW_RANK            = 6; /**< Rank value of arrow. */
+    constexpr SizeType PIKE_RANK             = 6; /**< Rank value of pike. */
+    constexpr SizeType GOLD_RANK             = 6; /**< Rank value of gold. */
+    constexpr SizeType PISTOL_RANK           = 4; /**< Rank value of pistol. */
+    constexpr SizeType SILVER_RANK           = 4; /**< Rank value of silver. */
+    constexpr SizeType BRONZE_RANK           = 2; /**< Rank value of bronze. */
+    constexpr SizeType NO_TAIL               = 0; /**< Indicates piece without tail. */
+    constexpr SizeType DROP_STACKABLE_PIECES = 4; /**< Number of pieces that can be dropped on. */
+    constexpr Orientation ORIENTATION_POS    = true; /**< Indicates positive board orientation. */
+    constexpr Orientation ORIENTATION_NEG    = false; /**< Indicates negative board orientation. */
 
     /**
-     * Heads
+     * Enum that stores the directions of a move using the conventional NW (north west),
+     * N (north), etc. , directions.
      */
+    enum class Direction : SizeType 
+    { NW, N, NE, E, SE, S, SW, W };
 
-    enum class Head : uint8_t
+    /**
+     * Enum that stores the current tier of a value.
+     */
+    enum class Tier : SizeType 
+    { None, One, Two, Three };
+
+
+    /**
+     * Enum that stores the head side character of a piece.
+     */
+    enum class Head : SizeType
     { None, Commander, Captain, Samurai, Ninja,  Catapult, 
         Fortress, HiddenDragon , Prodigy, Archer, Soldier };
 
-    constexpr uint8_t CAPTAIN_RANK = 12;
-    constexpr uint8_t SAMURAI_RANK = 10;
-    constexpr uint8_t NINJA_RANK = 8;
-    constexpr uint8_t HIDDEN_DRAGON_RANK = 8;
-    constexpr uint8_t CATAPULT_RANK = 6;
-    constexpr uint8_t FORTRESS_RANK = 6;
-    constexpr uint8_t PRODIGY_RANK = 4;
-    constexpr uint8_t ARCHER_RANK = 4;
-    constexpr uint8_t SOLDIER_RANK = 2;
-    constexpr uint8_t NO_HEAD = 0;
-    
     /**
-     * Tails
+     * Enum that stores the tail side character of a piece.
      */
-
-    enum class Tail : uint8_t
+    enum class Tail : SizeType
     { None, Pistol, Pike, Jounin, Lance, DragonKing,
         Phoenix, Arrow, Gold, Silver, Bronze };
 
-    constexpr uint8_t DRAGON_KING_RANK = 12;
-    constexpr uint8_t LANCE_RANK = 10;
-    constexpr uint8_t PHOENIX_RANK = 10;
-    constexpr uint8_t JOUNIN_RANK = 8;
-    constexpr uint8_t ARROW_RANK = 6;
-    constexpr uint8_t PIKE_RANK = 6;
-    constexpr uint8_t GOLD_RANK = 6;
-    constexpr uint8_t PISTOL_RANK = 4;
-    constexpr uint8_t SILVER_RANK = 4;
-    constexpr uint8_t BRONZE_RANK = 2;
-    constexpr uint8_t NO_TAIL = 0;
+    /**
+     * Enum that stores the phases of a standard game.
+     */
+    enum class Phase : SizeType
+    { Standby, Placement, Running };
 
+        
+    enum class Color : SizeType
+    { None, Black, White };
+
+    enum class Commander : SizeType
+    {
+        NW = 0x01,
+        N  = 0x02,
+        NE = 0x04,
+        E  = 0x08,
+        SE = 0x10,
+        S  = 0x20,
+        SW = 0x40,
+        W  = 0x80
+    };
+
+    const SmallPoint2 UBD_PT2 { UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint2. */
+    const SmallPoint3 UBD_PT3 { UNBOUNDED, UNBOUNDED, UNBOUNDED }; /**< Unbounded SmallPoint3. */
+
+    /**
+     * This class holds a move that a piece can use. A move is merely a vector since it has
+     * a magnitude and a direction. To chain moves, a move can also hold a pointer to another
+     * move. This functionalility should only be used if a move can't created using one move.
+     * This is not a linked list!
+     */
+    class Move
+    {
+        using MagnitudeType = SizeType;
+
+        public:
+
+            /**
+             * This constructor instantiates a move (vector) using the given magnitude
+             * and direction.
+             * @param magnitude the desired magnitude
+             * @param direction the desired direction
+             */
+            Move(const MagnitudeType& magnitude, const Direction& direction);
+
+            /**
+             * This constructor instantiates a move (vector) using the given magnitude
+             * and direction, and will store a link to another move that it will construct
+             * using the second set of parameters.
+             * @param magnitude the desired magnitude
+             * @param direction the desired direction
+             * @param nextMagnitude the desired magnitude of the next move
+             * @param nextDirection the desired direction of the next move
+             */
+            Move(const MagnitudeType& magnitude, const Direction& direction, 
+                    const MagnitudeType& nextMagnitude, const Direction& nextDirection);
+
+            /**
+             * This method returns the magnitude of the move.
+             * @return the magnitude of the move
+             */
+            const MagnitudeType& getMagnitude() const;
+
+            /**
+             * This returns the direction of the move.
+             * @return the direction of the move.
+             */
+            const Direction& getDirection() const;
+
+            /**
+             * This method returns a reference to the next move.
+             * @return a reference to the next move.
+             */
+            const Move* getNext() const;
+
+            friend bool operator == (const Move& lhs, const Move& rhs);
+
+        private:
+            const MagnitudeType _magnitude; /**< The magnitude of the move. */ 
+            const Direction _direction; /**< The direction of the move. */
+            std::unique_ptr<Move> _next; /**< Pointer to the next move, if used. */
+    };
+    
+    /**
+     * This class is a board piece. A board piece contains a Head and a Tail
+     * value. This is a restricted mutable class. The Head and Tail values can
+     * not be modified after instantiating. The active side flag (bool) can be
+     * modified however.
+     */
     class Piece
     {
         public:
+
+            /**
+             * This constructor will instatiate a null piece. The null-piece flag
+             * is set to true.
+             */
             Piece();
-            Piece(const Head& head, const Tail& tail = Tail::None);
-            void setSide(const bool& onHead);
+
+            /**
+             * This constructor will instatiate a piece with the given
+             * Head and Tail value. The on-head flag is set to true. The null-piece
+             * flag is set to false.
+             * @param head the desired head value
+             * @param tail the desired tail value
+             */
+            Piece(const Head& head, const Tail& tail, const Color& headColor, 
+                    const Color& tailColor);
+
+            /**
+             * This method will flip the side of the piece.
+             */
+            void flip();
+
+            /**
+             * This method returns the head value.
+             * @return a const reference to the head value
+             */
             const Head& getHead() const;
+
+            const Color& getHeadColor() const;
+            /**
+             * This method returns the tail value.
+             * @return a const reference to the tail value.
+             */
             const Tail& getTail() const;
+
+
+            const Color& getTailColor() const;
+
+            const Color& getActiveColor() const;
+
+            /**
+             * This method returns the null flag value of the piece.
+             * @return true if piece is null
+             */
             bool isNull() const;
+
+            /**
+             * This method returns the on-head flag value of the piece.
+             * @return true if piece is on head side
+             */
             bool onHead() const;
 
-        protected:
-            Head _head;
-            Tail _tail;
-            bool _nullPiece;
-            bool _onHead;
-    };
+            /**
+             * This method returns true if piece can be stack on during a drop.
+             * @return true if piece can stacked on
+             */
+            bool dropStackable() const;
 
-    
-    class IndexedPiece : public Piece
-    {
-        using IndexingType = Point3;
+            bool canJump() const;
 
-        public:
-            IndexedPiece();
-            IndexedPiece(const Head& head, const Tail& tail = Tail::None, const IndexingType& idx = IndexingType());
-            void setIndex(const IndexingType& idx);
-            const IndexingType& getIndex() const;
-            friend bool operator < (const IndexedPiece& lhs, const IndexedPiece& rhs);
-            friend bool operator == (const IndexedPiece& lhs, const IndexedPiece& rhs);
+            bool canExpandMobileRange() const;
             
         private:
-            IndexingType _idx;
-    };
-
-    constexpr size_t STD_PIECE_CT = 23;
-
-    class StdPieceSet
-    {
-        using AccessType = size_t;
-
-        public:
-
-            using SetType = std::array<IndexedPiece,STD_PIECE_CT>;
-
-            StdPieceSet();
-            IndexedPiece& operator [] (const AccessType& i);
-            const IndexedPiece& operator [] (const AccessType& i) const;
-
-            void swap(const AccessType& a, const AccessType& b);
-            const SetType& showSet() const;
-        private:
-            SetType _pieceSet;
+            Head _head; /**<  The head value of the piece. */
+            Tail _tail; /**< The tail value of the piece. */
+            bool _nullPiece; /**< Null piece flag. */
+            bool _onHead; /**< On head flag. */
+            Color _headColor;
+            Color _tailColor;
     };
     
-    uint8_t getHeadValue(const Piece& piece);
-    uint8_t getTailValue(const Piece& piece);
+    class PieceSet 
+    {
+        public:
 
+            PieceSet(Color headColors, Color tailColors);
+
+            void remove(const SizeType& i);
+            void append(const IndexedPiece& piece);
+            void append(IndexedPiece&& piece);
+            void append(const Piece& piece, const SmallPoint3& pt3);
+            Piece& pieceAt(const SizeType& i);
+            SmallPoint3& pointAt(const SizeType& i);
+            const Piece& pieceAt(const SizeType& i) const;
+            const SmallPoint3& pointAt(const SizeType& i) const;
+
+            std::vector<IndexedPiece> Set;
+    };
+
+    struct IndexState
+    {
+        IndexState(bool state, bool opponent, Tier tier)
+        : validState (state)
+        , onOpponent (opponent)
+        , atTier     (tier)
+        {}
+        
+        bool validState;
+        bool onOpponent;
+        Tier atTier;
+    };
+
+    const Piece NULL_PIECE; /**< A null piece. */
+
+    /**
+     * This convenience operator overload increments a tier enum.
+     */
+    Tier& operator ++(Tier& tier);
+
+    /**
+     * This convenience operator overload decrements a tier enum.
+     */
+    Tier& operator --(Tier& tier);
+
+    Tier asTier(const SizeType& i);
+    
+    /**
+     * This convenience operator overload increments a phase enum.
+     */
+    Phase& operator ++ (Phase& phase);
+
+    /**
+     * This convenience operator overload decrements a phase enum.
+     */
+    Phase& operator -- (Phase& phase);
+
+    /**
+     * This functions checks where a pt is bounded.
+     * @param pt2 point to evaluate
+     * @return true if pt2 is unbounded
+     */
+    bool isUnbounded(const SmallPoint2& pt2);
+
+    /**
+     * This functions checks where a pt is bounded.
+     * @param pt3 point to evaluate
+     * @return true if pt3 is unbounded
+     */
+    bool isUnbounded(const SmallPoint3& pt3);
+
+    std::string getHeadString(const Piece& piece);
+
+    std::string getTailString(const Piece& piece);
+
+    /**
+     * This function returns the head rank value of the given piece.
+     * @param piece the Piece to evaluate
+     * @return piece's head rank value
+     */
+    SizeType getHeadValue(const Piece& piece);
+
+    /**
+     * This function returns the tail rank value of the given piece.
+     * @param piece the Piece to evaluate
+     * @return piece's tail rank value
+     */
+    SizeType getTailValue(const Piece& piece);
+
+    /**
+     * This function will append the moves that the commander can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     */
     void genCommanderMoveSet    (MoveSet& moveset);
+
+    /**
+     * This function will append the moves that the captain can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genCaptainMoveSet      (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the samurai can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genSamuraiMoveSet      (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the ninja can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genNinjaMoveSet        (MoveSet& moveset, const Tier& tier);
-    void genCatapultMoveSet     (MoveSet& moveset, const Tier& tier);
-    void genFortressMoveSet     (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the hidden dragon can use before being 
+     * filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genHiddenDragonMoveSet (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the prodigy can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genProdigyMoveSet      (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the archer can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genArcherMoveSet       (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the soldier can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genSoldierMoveSet      (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the dragon king can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genDragonKingMoveSet   (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the lance can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genLanceMoveSet        (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the phoenix can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genPhoenixMoveSet      (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the jounin can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genJouninMoveSet       (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the pike can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genPikeMoveSet         (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the arrow can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genArrowMoveSet        (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the gold can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     */
     void genGoldMoveSet         (MoveSet& moveset);
+
+    /**
+     * This function will append the moves that the pistol can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genPistolMoveSet       (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the silver can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     * @param tier the Tier used to determine which set of mvoes to append
+     */
     void genSilverMoveSet       (MoveSet& moveset, const Tier& tier);
+
+    /**
+     * This function will append the moves that the can use before being filtered out.
+     * @param moveset a reference to a MoveSet to append to: an in-out parameter
+     */
     void genBronzeMoveSet       (MoveSet& moveset);
 
+    /**
+     * This function will generate the correct moveset for the given piece (using its' Head value)
+     * and its' current tier. Passing a null piece will generate an empty moveset.
+     * @param piece a piece
+     * @param tier the piece's tier
+     * @return unfiltered moveset of the piece given its' tier
+     */
     MoveSet genHeadMoveSet(const Piece& piece, const Tier& tier);
+
+    /**
+     * This function will generate the correct moveset for the given piece (using its' Tail value)
+     * and its' current tier. Passing a null piece will generate an empty moveset.
+     * @param piece a piece
+     * @param tier the piece's tier
+     * @return unfiltered moveset of the piece given its' tier
+     */
     MoveSet genTailMoveSet(const Piece& piece, const Tier& tier);
 
-    size_t OverflowSub(const size_t& lhs, const size_t& rhs, const size_t& overflow);
-    size_t OverflowAdd(const size_t& lhs, const size_t& rhs, 
-            const size_t& constraint, const size_t& overflow);
+    Indices2 genFortressRangeSet(const Board& board, const SmallPoint2& origin, 
+            Orientation o = ORIENTATION_POS);
+    
+    Indices2 genCatapultRangeSet(const Board& board, const SmallPoint2& origin, 
+            Orientation o = ORIENTATION_POS);
 
-    template <class PieceMatrix, class Indices>
-    bool isOccupied(const PieceMatrix& matrix, const Indices& idx)
+    /**
+     * This convenience function subtracts two unsigned operands. If lhs operand < rhs operand,
+     * then the specified overflow value is returned.
+     * @param lhs the left hand side operand
+     * @param rhs the right hand side operand
+     * @param overflow the overflow value to return if lhs < rhs
+     * @return difference if lhs >= rhs, otherwise returns overflow
+     */
+    template <class SizeType>
+    SizeType OverflowSub(const SizeType& lhs, const SizeType& rhs, const SizeType& overflow)
     {
-        return !matrix[idx].isNull();
-    }
-
-    template <class PieceMatrix>
-    bool hasAnEmptyTier(const PieceMatrix& matrix, Point3 idx)
-    {
-        bool emptyTier = false;
-        for (auto i = 0u; !emptyTier && i < BOARD_TIERS; ++i)
-        {
-            idx.z = i;
-            if (matrix[idx].isNull())
-                emptyTier = true; 
-        }
-        return emptyTier;
+        if (lhs < rhs)
+            return overflow;
+        else
+            return lhs - rhs;
     }
 
     /**
-     * Assuming (0,0) is top left
+     * This convenience function adds two unsigned operands. If the result > constraint,
+     * then the specified overflow value is returned.
+     * @param lhs the left hand side operand
+     * @param rhs the right hand side operand
+     * @param constraint the constraint value 
+     * @param overflow the overflow value to return if result > constraint
+     * @return sum if the result <= constraint, otherwise returns overflow
      */
-    template <class Matrix2, class Indices>
-    Indices genIndexOf2DMove(const Matrix2& matrix, 
-            Indices idx, const Move& move)
+    template <class SizeType>
+    SizeType OverflowAdd(const SizeType& lhs, const SizeType& rhs,
+            const SizeType& constraint, const SizeType& overflow)
     {
-        switch (move.getDirection())
-        {
-            case Direction::NW:
-                idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
-                idx.y = OverflowSub(idx.y, move.getMagnitude(), UNBOUND);
-                break;
-            case Direction::N:
-                idx.y = OverflowSub(idx.y, move.getMagnitude(), UNBOUND);
-                break;
-            case Direction::NE:
-                idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
-                idx.y = OverflowSub(idx.y, move.getMagnitude(), UNBOUND);
-                break;
-            case Direction::E:
-                idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
-                break;
-            case Direction::SE:
-                idx.x = OverflowAdd(idx.x, move.getMagnitude(), matrix.getWidth(), UNBOUND);
-                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
-                break;
-            case Direction::S:
-                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
-                break;
-            case Direction::SW:
-                idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
-                idx.y = OverflowAdd(idx.y, move.getMagnitude(), matrix.getLength(), UNBOUND);
-                break;
-            case Direction::W:
-                idx.x = OverflowSub(idx.x, move.getMagnitude(), UNBOUND);
-                break;
-        }
-        return idx;
+        SizeType res = lhs + rhs;
+        return res < constraint ? res : overflow;
     }
+   
+    /**
+     * This function will invert a negative orientation SmallPoint2 to its positive
+     * value.
+     * @param pt2 a point
+     * @return the positive (inverse) of pt2
+     */
+    SmallPoint2 asPositive2(const SmallPoint2& pt2);
+    
+    /**
+     * This function will invert a positive orientation SmallPoint2 to its negative
+     * value.
+     * @param pt2 a point
+     * @return the negative (inverse) of pt2
+     */
+    SmallPoint2 asNegative2(const SmallPoint2& pt2);
 
-    template <class Matrix2>
-    bool inBound(const Matrix2& matrix, const Point& idx)
-    {
-        return idx.x < matrix.getWidth() && idx.y < matrix.getHeight();
-    }
+    /**
+     * This function will invert a positive orientation SmallPoint3 to its negative
+     * SmallPoint2 value.
+     * @param pt3 a point
+     * @return the negative SmallPoint2 (inverse) of pt3
+     */
+    SmallPoint2 asPositive2(const SmallPoint3& pt3);
 
-    template <class Matrix3>
-    Point3 genIndexOf3DMove(const Matrix3& matrix, 
-            Point3 idx, const Move& move)
-    {
-        auto twoDimIDX = genIndexOf2DMove(matrix, toXY(idx), move);
-        return toXYZ(twoDimIDX, idx.z);
-    }
+    /**
+     * This function will invert a negative orientation SmallPoint3 to its positive
+     * SmallPoint2 value.
+     * @param pt3 a point
+     * @return the positive SmallPoint2 (inverse) of pt3
+     */
+    SmallPoint2 asNegative2(const SmallPoint3& pt3);
 
-    template <class Matrix3>
-    bool inBound(const Matrix3& matrix, const Point3& idx)
-    {
-        return inBound(matrix, toXY(idx)) && idx.y < matrix.getHeight();
-    }
+    /**
+     * This function will invert a negative orientation SmallPoint2 to its positive
+     * SmallPoint3 value.
+     * @param pt2 a point
+     * @return the positive SmallPoint3 (inverse) of pt2
+     */
+    SmallPoint3 asPositive3(const SmallPoint2& pt2);
 
-    template <class Matrix, class Indices>
-    auto genPossibleMoves(const Matrix& matrix, const Indices& idx, const MoveSet& moveset)
-    {
-        Matrix3<bool> allowedMoves { BOARD_SIZE, BOARD_SIZE, BOARD_TIERS, false };
+    /**
+     * This function will invert a postive orientation SmallPoint2 to its negative
+     * SmallPoint3 value.
+     * @param pt2 a point
+     * @return the negative SmallPoint3 (inverse) of pt2
+     */
+    SmallPoint3 asNegative3(const SmallPoint2& pt2);
 
-        for (auto itr = moveset.cbegin(); itr != moveset.cend(); ++itr)
-        {
-            auto moveIdx = genIndexOf3DMove(matrix, idx, *itr);
-            if (inBound(matrix, moveIdx) && hasAnEmptyTier(matrix, moveIdx))
-                allowedMoves[moveIdx] = true;
-        }
+    /**
+     * This function will invert a negative orientation SmallPoint3 to its positive
+     * SmallPoint3 value.
+     * @param pt3 a point
+     * @return the positive SmallPoint3 (inverse) of pt2
+     */
+    SmallPoint3 asPositive3(const SmallPoint3& pt3);
 
-        return allowedMoves;
-    }
+    /**
+     * This function will invert a postive orientation SmallPoint3 to its negative
+     * SmallPoint3 value.
+     * @param pt3 a point
+     * @return the negative SmallPoint3 (inverse) of pt3
+     */
+    SmallPoint3 asNegative3(const SmallPoint3& pt3);
+
+    /**
+     * This function returns true if the point on the board is a null piece. Note,
+     * this does not bounds check. Out of bounds points produce undefined behavior.
+     * The function will deal with negative to positive orientation conversion.
+     * @param board a board to evaluate
+     * @param pt3 a SmallPoint3
+     * @param o the orientation to interpret the board from
+     * @return true if index is a null piece
+     */
+    bool isNullAt(const Board& board, const SmallPoint3& pt3);
+
+    /**
+     * This function will set the board to a null piece at the given point. Note,
+     * this does not bounds check. Out of bounds points produce undefined behavior.
+     * The function will deal with negative to positive orientation conversion.
+     * @param board a board to evaluate
+     * @param pt3 a SmallPoint3
+     * @param o the orientation to interpret the board from
+     */
+    void nullifyAt(Board& board, const SmallPoint3& pt3);
+    /**
+     * This function will return the lowest available tier at the given pt2. Note,
+     * the pt2.x will correspond to board's x-coordinate, and pt2.y will correspond
+     * to the board's z-coordinate.
+     * The function will deal with negative to positive orientation conversion.
+     * @param board a board to evaluate
+     * @param pt2 x,y pair to evaluate
+     * @param o the orientation to interpret the board from
+     * @return index of lowest available tier, if no tier is available returns NO_TIERS_FREE
+     * @see NO_TIERS_FREE
+     */
+    SizeType availableTierAt(const Board& board, const SmallPoint2& pt2);
+    /**
+     * This function will return the lowest available tier at the given pt3. Note, the pt3
+     * will 'collapse' to a SmalllPoint2 in this case as the y value of the pt3 is of no 
+     * importance in this function.
+     * The function will deal with negative to positive orientation conversion.
+     * @param board a board to evaluate
+     * @param pt3 x,z pair to evaluate
+     * @param o the orientation to interpret the board from
+     * @return index of lowest available tier, if no tier is available returns NO_TIERS_FREE
+     * @see NO_TIERS_FREE
+     */
+    SizeType availableTierAt(const Board& board, const SmallPoint3& pt3);
+
+    /**
+     * This functions will return true if the board has an available tier at the given pt2.
+     * The function will deal with negative to positive orientation conversion.
+     * @param board a board to evaluate
+     * @param pt2 x,y pair to evaluate
+     * @param o the orientation to interpret the board from
+     * @return true if the given index has an open tier
+     */
+    bool hasOpenTierAt(const Board& board, const SmallPoint2& pt3);
+
+    /**
+     * This functions will return true if the board has an available tier at the given pt3.
+     * The function will deal with negative to positive orientation conversion.
+     * @param board a board to evaluate
+     * @param pt3 x,z pair to evaluate
+     * @param o the orientation to interpret the board from
+     * @return true if the given index has an open tier
+     */
+    bool hasOpenTierAt(const Board& board, const SmallPoint3& pt3);
+
+    /**
+     * This function will evaluate if a given a tower meets a givin predicate. The
+     * format for the predicate is : bool(*filter) (const SizeType&, const Piece&). The predicate
+     * should evaluate for null pieces as well, since the function will not check
+     * for that.
+     * @param board a board to evaluate
+     * @param pt2 x,y pair to evaluate tower at
+     * @param filter the predicate
+     * @param o the orientation to interpret the board from
+     * @return true if all tiers in the tower satisfy the predicate
+     */
+    bool towerMeets(const Board& board, const SmallPoint2& pt2, TierFilter filter);
+
+    /**
+     * This function will evaluate if a given a tower meets a givin predicate. The
+     * format for the predicate is : bool(*filter) (const SizeType&, const Piece&). The predicate
+     * should evaluate for null pieces as well, since the function will not check
+     * for that.
+     * @param board a board to evaluate
+     * @param pt3 x,z pair to evaluate tower at
+     * @param filter the predicate
+     * @param o the orientation to interpret the board from
+     * @return true if all tiers in the tower satisfy the predicate
+     */
+    bool towerMeets(const Board& board, SmallPoint3 pt3, TierFilter filter);
+
+    /**
+     * This function will place the piece on board using the specified point. This function
+     * will collapse the piece unto the lowest available tier. If there are no open tiers,
+     * this function does nothing.
+     * @param board a board to modify
+     * @param piece a piece to place
+     * @param pt3 point to place piece in
+     */
+    void placeAt(Board& board, const Piece* piece, const SmallPoint3& pt3);
+    
+
+    /**
+     * This function will convert a pt2 and a move unto a collection of indices
+     * The function will deal with negative to positive orientation conversion.
+     * @param pt2 the starting point
+     * @param move the Move('vector') to merge with pt2
+     * @param o the current orientation of pt2
+     * @return the collection of indices generated (empty if move can't be applied) 
+     */
+    SmallPoint2 genIndex2Of(SmallPoint2 pt2, const Move& move);
+
+    /**
+     * This function will generate a board state on the given set of indices using the filter
+     * function.
+     * @param board a board to evaluate
+     * @param indices a set of indices to filter
+     * @param filter a filter function 
+     * @return the BoardState after applying the filter function
+     */
+    Indices3 filterIndices3(const Board& board, const Indices3& indices, StateFilter filter);
+
+    Indices3 genInfluenceSources(const Board& board, SmallPoint3 destination,
+            Orientation o = ORIENTATION_POS);
+
+    /**
+     * This function will evaluate if the given piece can be dropped('placed') at the given
+     * pt3 using the given orientation. This function should be used during the placement phase of
+     * the game. There is another function for valid drops during the running phase.
+     * @param board a game board
+     * @param piece the piece
+     * @param pt3 the desired pt3 to place the piece in
+     * @param o the orientation in which to evaluate the piece
+     * @return true if piece can be dropped on the specified pt3
+     * @see validRunningDrop
+     */
+    bool validPlacementDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
+            Orientation o = ORIENTATION_POS);
+
+    /**
+     * This function will evaluate if the given piece can be dropped('placed') at the given
+     * pt3 using the given orientation. This function should be used during the running phase of
+     * the game. There is another function for valid drops during the placement phase.
+     * @param board a game board
+     * @param piece the piece
+     * @param pt3 the desired pt3 to place the piece in
+     * @param o the orientation in which to evaluate the piece
+     * @return true if piece can be dropped on the specified pt3
+     * @see validPlacementDrop
+     */
+    bool validRunningDrop(const Board& board, const Piece& piece, SmallPoint3 pt3,
+            Orientation o = ORIENTATION_POS);
+
+    /**
+     * This function will evaluate if applying the move to the origin will yield a valid point
+     * on the board. This function will not check if the piece can use the move.
+     * @param board a game board
+     * @param origin the index of the piece
+     * @param move the move to apply to the move
+     * @param o the orientation in which to evaluate the piece
+     * @return true if piece can be shifted to the specified spot
+     * @see validRunningDrop
+     */
+    bool validRunningShift(const Board& board, const Piece& piece, const SmallPoint3& pt3,
+            const Move& move, Orientation o = ORIENTATION_POS);
+   
+    bool flatPathHas(const Board& board, SmallPoint2 pt2, const Move& move,
+            PieceFilter filter);
 }
