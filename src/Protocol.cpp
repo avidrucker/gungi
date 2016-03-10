@@ -152,9 +152,9 @@ namespace Gungi
 
     bool Piece::canExpandMobileRange() const
     {
-        if (not(_onHead))
-            return not(_tail == Tail::DragonKing || _tail == Tail::Phoenix);
-        return not(_head == Head::Prodigy || _head == Head::HiddenDragon || 
+        if (!(_onHead))
+            return !(_tail == Tail::DragonKing || _tail == Tail::Phoenix);
+        return !(_head == Head::Prodigy || _head == Head::HiddenDragon || 
                 _head == Head::Commander || _head == Head::Catapult ||
                 _head == Head::Fortress);
     }
@@ -872,7 +872,7 @@ namespace Gungi
         Indices2  ranges;
         bool overflowing = false;
         SizeType i = 0;
-        while (not(overflowing))
+        while (!(overflowing))
         {
             auto tmp = origin;
             tmp.y = OverflowAdd(tmp.y, i, BOARD_WIDTH, UNBOUNDED);
@@ -1160,7 +1160,7 @@ namespace Gungi
                 {
                     auto piece = board(i, j, k);
                     MoveSet moveset;
-                    if (not(piece->isNull()))
+                    if (!(piece->isNull()))
                     {
                         if (piece->onHead())
                             moveset = genHeadMoveSet(*piece, asTier(k));
@@ -1197,7 +1197,7 @@ namespace Gungi
         if (o == ORIENTATION_NEG)
         {
             pt3 = asPositive3(pt3);
-            if (not(pt3.z >= (BOARD_DEPTH - VALID_PLCMT_DEPTH)))
+            if (!(pt3.z >= (BOARD_DEPTH - VALID_PLCMT_DEPTH)))
                 return false;
         }
 
@@ -1297,7 +1297,7 @@ namespace Gungi
     bool validRunningShift(const Board& board, const Piece& piece, const SmallPoint3& pt3,
             const Move& move, Orientation o)
     {
-        bool movablePiece = not(piece.onHead() && 
+        bool movablePiece = !(piece.onHead() && 
                 (piece.getHead() == Head::Fortress || piece.getHead() == Head::Catapult));
 
         if (piece.onHead() && piece.getHead() == Head::Commander)
@@ -1314,7 +1314,7 @@ namespace Gungi
     bool flatPathHas(const Board& board, SmallPoint2 pt2, const Move& move, 
             PieceFilter filter)
     {
-        bool inBound = not(isUnbounded(pt2));
+        bool inBound = !(isUnbounded(pt2));
         for (SizeType i = 0; inBound && i <= move.getMagnitude(); ++i)
         {
             pt2 = genIndex2Of(pt2, Move(i, move.getDirection()));

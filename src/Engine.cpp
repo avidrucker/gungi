@@ -158,7 +158,7 @@ namespace Gungi
         #endif
 
         auto state = assessDrop(_onesTurn, i, pt3);
-        if (not(state.validState))
+        if (!(state.validState))
             return state;
         
         #if (DEBUG)
@@ -166,7 +166,7 @@ namespace Gungi
         #endif
 
         Player* player = _onesTurn ? &_one : &_two;
-        if (not(player->getOrientation()))
+        if (!(player->getOrientation()))
             pt3 = asPositive3(pt3);
 
         pt3.y = availableTierAt(_gameBoard, pt3);
@@ -190,7 +190,7 @@ namespace Gungi
 
         auto state = assessMove(_onesTurn, i, move);
 
-        if (not(state.validState))
+        if (!(state.validState))
             return state;
 
         #if (DEBUG)
@@ -239,8 +239,8 @@ namespace Gungi
         auto point = player->pointAt(i);
         auto positiveOrientation = player->getOrientation();
 
-        if (_phase == Phase::Standby || not(isUnbounded(point)) || 
-                not(validPlacementDrop(_gameBoard, piece, pt3, positiveOrientation)))
+        if (_phase == Phase::Standby || !(isUnbounded(point)) || 
+                !(validPlacementDrop(_gameBoard, piece, pt3, positiveOrientation)))
             return IndexState(false, false, Tier::None);
 
         #if (DEBUG)
@@ -248,7 +248,7 @@ namespace Gungi
                 << endl;
         #endif
 
-        if (not(positiveOrientation))
+        if (!(positiveOrientation))
             pt3 = asPositive3(pt3);
 
         pt3.y = availableTierAt(_gameBoard, pt3);
@@ -281,7 +281,7 @@ namespace Gungi
         if (point.y != 2)
         {
             auto pieceAbove = SmallPoint3(point.x, point.z, point.y + 1);
-            if (not(isNullAt(_gameBoard, pieceAbove)))
+            if (!(isNullAt(_gameBoard, pieceAbove)))
                 return IndexState(false, false, Tier::None);
 
             #if (DEBUG)
@@ -314,8 +314,8 @@ namespace Gungi
             cerr <<  "In Game::assessMove(), move is in piece's moveset." << endl;
         #endif
 
-        if (not(piece.canJump()) && flatPathHas(_gameBoard, pt2, move, [] (const Piece& piece)
-                    { return not(piece.isNull());}))
+        if (!(piece.canJump()) && flatPathHas(_gameBoard, pt2, move, [] (const Piece& piece)
+                    { return !(piece.isNull());}))
             return IndexState(false, false, Tier::None);
 
         auto pt3 = player->getOrientation() == ORIENTATION_POS ? SmallPoint3(pt2) : 
